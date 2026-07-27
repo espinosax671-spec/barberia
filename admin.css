@@ -1,1 +1,111 @@
+.admin-body { background: var(--off-white); min-height: 100vh; }
 
+.admin-login {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--navy);
+  padding: 24px;
+}
+.admin-login-box {
+  background: var(--white);
+  padding: 40px 36px;
+  max-width: 380px;
+  width: 100%;
+  border-radius: var(--radius);
+}
+.admin-login-box h1 {
+  font-size: 1.4rem;
+  margin-bottom: 6px;
+}
+.admin-sub {
+  color: #777;
+  font-size: 0.9rem;
+  margin: 0 0 28px;
+}
+.admin-login-box .field { margin-bottom: 18px; }
+.admin-login-box label {
+  display: block;
+  font-size: 0.82rem;
+  color: #555;
+  margin-bottom: 6px;
+}
+.admin-login-box input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+}
+.admin-login-box input:focus { outline: none; border-color: var(--blue); }
+
+.admin-header {
+  background: var(--white);
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 32px;
+}
+.admin-header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.admin-user { font-size: 0.85rem; color: #666; }
+.btn-sm { padding: 8px 16px; font-size: 0.75rem; }
+
+.admin-main { padding: 40px 24px; }
+.admin-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+.admin-filter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.88rem;
+  color: #555;
+}
+.admin-filter input {
+  padding: 8px 10px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  font-family: var(--font-body);
+}
+
+.citas-list { display: flex; flex-direction: column; gap: 12px; }
+.cita-card {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--blue);
+  padding: 18px 22px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.cita-card.completada { border-left-color: #157a3d; opacity: 0.7; }
+.cita-card.cancelada { border-left-color: var(--red); opacity: 0.6; }
+
+.cita-info strong { display: block; color: var(--navy); font-size: 1rem; margin-bottom: 4px; }
+.cita-info span { display: block; font-size: 0.86rem; color: #666; }
+.cita-actions { display: flex; gap: 8px; }
+.cita-actions button {
+  border: 1.5px solid var(--line);
+  background: var(--white);
+  padding: 8px 14px;
+  font-size: 0.78rem;
+  cursor: pointer;
+  border-radius: var(--radius);
+  font-family: var(--font-body);
+}
+.cita-actions button:hover { border-color: var(--blue); }
+.cita-actions .cancel-btn:hover { border-color: var(--red); color: var(--red); }
