@@ -56,7 +56,7 @@ function dateKey(d) {
 // ---------- Citas: ahora contra Supabase ----------
 async function loadCitasDelDia(fecha) {
   const { data, error } = await supabaseClient
-    .from('citas')
+    .from('horarios_ocupados')
     .select('hora_inicio, duracion')
     .eq('fecha', fecha);
 
