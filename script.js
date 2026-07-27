@@ -31,7 +31,6 @@ const HOURS = {
 };
 
 const SLOT_STEP = 30; // minutos entre horarios ofrecidos
-const STORAGE_KEY = 'barberia_citas';
 
 // ---------- Estado ----------
 let selectedService = null;
@@ -53,17 +52,32 @@ function minutesToLabel(mins) {
 function dateKey(d) {
   return d.toISOString().slice(0, 10);
 }
-function loadCitas() {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-  } catch {
+
+// ---------- Citas: ahora contra Supabase ----------
+async function loadCitasDelDia(fecha) {
+  const { data, error } = await supabaseClient
+    .from('citas')
+    .select('hora_inicio, duracion')
+    .eq('fecha', fecha);
+
+  if (error) {
+    console.error('Error consultando citas:', error);
     return [];
   }
+  return data.map(c => ({ start: c.hora_inicio, duration: c.duracion }));
 }
-function saveCita(cita) {
-  const citas = loadCitas();
-  citas.push(cita);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(citas));
+
+async function guardarCita(cita) {
+  const { error } = await supabaseClient.from('citas').insert({
+    fecha: cita.dateKey,
+    hora_inicio: cita.start,
+    duracion: cita.duration,
+    servicio: cita.service,
+    precio: cita.price,
+    nombre_cliente: cita.name,
+    telefono: cita.phone,
+  });
+  return error;
 }
 
 // ---------- Render: servicios ----------
@@ -118,7 +132,7 @@ function renderDates() {
 
 // ---------- Render: horas disponibles ----------
 const timeSelectEl = document.getElementById('timeSelect');
-function renderTimes() {
+async function renderTimes() {
   timeSelectEl.innerHTML = '';
 
   if (!selectedService || !selectedDate) {
@@ -133,7 +147,9 @@ function renderTimes() {
     return;
   }
 
-  const citas = loadCitas().filter(c => c.dateKey === dateKey(selectedDate));
+  timeSelectEl.innerHTML = '<p class="hint">Cargando horarios disponibles…</p>';
+  const citas = await loadCitasDelDia(dateKey(selectedDate));
+  timeSelectEl.innerHTML = '';
   const duration = selectedService.duration;
 
   let anySlot = false;
@@ -177,7 +193,7 @@ function updateSummary() {
 const bookingForm = document.getElementById('bookingForm');
 const formMsgEl = document.getElementById('formMsg');
 
-bookingForm.addEventListener('submit', (e) => {
+bookingForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   formMsgEl.className = 'form-msg';
   formMsgEl.textContent = '';
@@ -196,19 +212,24 @@ bookingForm.addEventListener('submit', (e) => {
     return;
   }
 
+  const submitBtn = bookingForm.querySelector('button[type="submit"]');
+  submitBtn.disabled = true;
+  formMsgEl.textContent = 'Confirmando...';
+
   // Revalidar disponibilidad justo antes de guardar (evita doble reserva)
-  const citas = loadCitas().filter(c => c.dateKey === dateKey(selectedDate));
+  const citas = await loadCitasDelDia(dateKey(selectedDate));
   const conflict = citas.some(c =>
     selectedTime < c.start + c.duration && selectedTime + selectedService.duration > c.start
   );
   if (conflict) {
     formMsgEl.textContent = 'Ese horario ya se acaba de ocupar. Elige otra hora.';
     formMsgEl.classList.add('error');
+    submitBtn.disabled = false;
     renderTimes();
     return;
   }
 
-  saveCita({
+  const error = await guardarCita({
     dateKey: dateKey(selectedDate),
     start: selectedTime,
     duration: selectedService.duration,
@@ -217,6 +238,15 @@ bookingForm.addEventListener('submit', (e) => {
     name,
     phone,
   });
+
+  submitBtn.disabled = false;
+
+  if (error) {
+    console.error('Error guardando cita:', error);
+    formMsgEl.textContent = 'Hubo un problema guardando tu cita. Intenta de nuevo.';
+    formMsgEl.classList.add('error');
+    return;
+  }
 
   formMsgEl.textContent = `¡Listo, ${name}! Tu cita de ${selectedService.name} quedó confirmada para el ${selectedDate.toLocaleDateString('es-CO', { day: 'numeric', month: 'long' })} a las ${minutesToLabel(selectedTime)}.`;
   formMsgEl.classList.add('ok');
