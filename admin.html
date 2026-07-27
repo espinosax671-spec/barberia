@@ -1,1 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel de administración — El Corte Clásico</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="admin.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="admin-body">
 
+<div id="loginView" class="admin-login">
+  <div class="admin-login-box">
+    <h1>Panel de citas</h1>
+    <p class="admin-sub">Inicia sesión para ver la agenda</p>
+    <form id="loginForm">
+      <div class="field">
+        <label for="loginEmail">Correo</label>
+        <input type="email" id="loginEmail" required placeholder="tucorreo@ejemplo.com">
+      </div>
+      <div class="field">
+        <label for="loginPassword">Contraseña</label>
+        <input type="password" id="loginPassword" required placeholder="••••••••">
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Entrar</button>
+      <p class="form-msg" id="loginMsg"></p>
+    </form>
+  </div>
+</div>
+
+<div id="panelView" class="admin-panel" style="display:none;">
+  <header class="admin-header">
+    <span class="brand-name">EL CORTE<br><strong>CLÁSICO</strong></span>
+    <div class="admin-header-right">
+      <span id="userEmail" class="admin-user"></span>
+      <button id="logoutBtn" class="btn btn-ghost">Cerrar sesión</button>
+    </div>
+  </header>
+
+  <main class="container admin-main">
+    <div class="admin-toolbar">
+      <h2>Agenda de citas</h2>
+      <div class="admin-filter">
+        <label for="filterDate">Ver día:</label>
+        <input type="date" id="filterDate">
+        <button id="clearFilter" class="btn btn-ghost btn-sm">Ver todas</button>
+      </div>
+    </div>
+
+    <div id="citasList" class="citas-list">
+      <p class="hint">Cargando citas…</p>
+    </div>
+  </main>
+</div>
+
+<script src="config.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>
