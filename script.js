@@ -1,6 +1,6 @@
 // ---------- Menú móvil ----------
 const menuToggle = document.getElementById('menuToggle');
-const mobileNav = document.getElementById('mobileNav');
+const mobileNav  = document.getElementById('mobileNav');
 menuToggle.addEventListener('click', () => {
   const isOpen = mobileNav.classList.toggle('open');
   menuToggle.setAttribute('aria-expanded', isOpen);
@@ -8,34 +8,6 @@ menuToggle.addEventListener('click', () => {
 mobileNav.querySelectorAll('a').forEach(a => {
   a.addEventListener('click', () => mobileNav.classList.remove('open'));
 });
-
-// ---------- Datos ----------
-const SERVICES = [
-  { id: 'corte', name: 'Corte clásico', price: 25000, duration: 30 },
-  { id: 'barba', name: 'Arreglo de barba', price: 18000, duration: 20 },
-  { id: 'combo', name: 'Combo corte + barba', price: 38000, duration: 50 },
-  { id: 'afeitado', name: 'Afeitado clásico', price: 22000, duration: 25 },
-  { id: 'nino', name: 'Corte niño', price: 18000, duration: 25 },
-  { id: 'lineup', name: 'Diseño / Line up', price: 12000, duration: 15 },
-];
-
-// Horario de atención por día de la semana (0 = domingo)
-const HOURS = {
-  1: { open: 9 * 60, close: 19 * 60 },  // lunes
-  2: { open: 9 * 60, close: 19 * 60 },
-  3: { open: 9 * 60, close: 19 * 60 },
-  4: { open: 9 * 60, close: 19 * 60 },
-  5: { open: 9 * 60, close: 19 * 60 },
-  6: { open: 9 * 60, close: 17 * 60 }, // sábado
-  0: null, // domingo cerrado
-};
-
-const SLOT_STEP = 30; // minutos entre horarios ofrecidos
-
-// ---------- Estado ----------
-let selectedService = null;
-let selectedDate = null; // objeto Date (medianoche local)
-let selectedTime = null; // minutos desde medianoche
 
 // ---------- Utilidades ----------
 function formatCOP(n) {
@@ -53,45 +25,125 @@ function dateKey(d) {
   return d.toISOString().slice(0, 10);
 }
 
-// ---------- Citas: ahora contra Supabase ----------
+// ---------- Estado global ----------
+let SERVICES  = [];
+let HOURS     = {};
+let negocioId = null;
+
+const SLOT_STEP = 30;
+
+let selectedService = null;
+let selectedDate    = null;
+let selectedTime    = null;
+
+// ---------- Inicializar página ----------
+async function initPage() {
+  // Cargar negocio
+  const { data: negocioData, error: negError } = await supabaseClient
+    .from('negocios')
+    .select('*')
+    .limit(1)
+    .maybeSingle();
+
+  if (negError || !negocioData) {
+    console.error('No se encontró el negocio:', negError);
+    return;
+  }
+
+  negocioId = negocioData.id;
+
+  // Cargar servicios activos
+  const { data: serviciosData } = await supabaseClient
+    .from('servicios')
+    .select('*')
+    .eq('negocio_id', negocioId)
+    .eq('activo', true)
+    .order('orden', { ascending: true });
+
+  SERVICES = (serviciosData || []).map(s => ({
+    id:       s.id,
+    name:     s.nombre,
+    price:    s.precio,
+    duration: s.duracion_min,
+  }));
+
+  // Cargar horarios
+  const { data: horariosData } = await supabaseClient
+    .from('horarios')
+    .select('*')
+    .eq('negocio_id', negocioId);
+
+  HOURS = {};
+  (horariosData || []).forEach(h => {
+    HOURS[h.dia_semana] = h.abre_minuto !== null
+      ? { open: h.abre_minuto, close: h.cierra_minuto }
+      : null;
+  });
+
+  // Renderizar
+  renderServices();
+  renderDates();
+  renderTimes();
+}
+
+// ---------- Disponibilidad ----------
 async function loadCitasDelDia(fecha) {
   const { data, error } = await supabaseClient
-    .from('horarios_ocupados')
+    .from('citas')
     .select('hora_inicio, duracion')
-    .eq('fecha', fecha);
+    .eq('negocio_id', negocioId)
+    .eq('fecha', fecha)
+    .eq('estado', 'confirmada');
 
   if (error) {
     console.error('Error consultando citas:', error);
     return [];
   }
-  return data.map(c => ({ start: c.hora_inicio, duration: c.duracion }));
+  return data.map(c => ({
+    start:    c.hora_inicio,
+    duration: c.duracion,
+  }));
 }
 
+// ---------- Guardar cita ----------
 async function guardarCita(cita) {
   const { error } = await supabaseClient.from('citas').insert({
-    fecha: cita.dateKey,
-    hora_inicio: cita.start,
-    duracion: cita.duration,
-    servicio: cita.service,
-    precio: cita.price,
-    nombre_cliente: cita.name,
-    telefono: cita.phone,
+    negocio_id:      negocioId,
+    fecha:           cita.dateKey,
+    hora_inicio:     cita.start,
+    duracion:        cita.duration,
+    servicio_nombre: cita.service,
+    precio:          cita.price,
+    nombre_cliente:  cita.name,
+    telefono:        cita.phone,
+    estado:          'confirmada',
   });
   return error;
 }
 
-// ---------- Render: servicios ----------
+// ---------- Render servicios ----------
 const serviceSelectEl = document.getElementById('serviceSelect');
 function renderServices() {
   serviceSelectEl.innerHTML = '';
+
+  if (!SERVICES.length) {
+    serviceSelectEl.innerHTML =
+      '<p class="hint">No hay servicios disponibles.</p>';
+    return;
+  }
+
   SERVICES.forEach(s => {
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.className = 'pill-option' + (selectedService?.id === s.id ? ' selected' : '');
-    btn.innerHTML = `<strong>${s.name}</strong><span>${formatCOP(s.price)} · ${s.duration} min</span>`;
+    btn.className = 'pill-option' +
+      (selectedService?.id === s.id ? ' selected' : '');
+    btn.innerHTML = `
+      <strong>${s.name}</strong>
+      <span>${formatCOP(s.price)} · ${s.duration} min</span>
+    `;
     btn.addEventListener('click', () => {
       selectedService = s;
-      selectedTime = null;
+      selectedTime    = null;
       renderServices();
       renderTimes();
       updateSummary();
@@ -100,9 +152,9 @@ function renderServices() {
   });
 }
 
-// ---------- Render: fechas (próximos 14 días) ----------
+// ---------- Render fechas ----------
 const dateSelectEl = document.getElementById('dateSelect');
-const DOW_LABELS = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'];
+const DOW_LABELS   = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'];
 
 function renderDates() {
   dateSelectEl.innerHTML = '';
@@ -113,12 +165,17 @@ function renderDates() {
     const d = new Date(today);
     d.setDate(d.getDate() + i);
     const dow = d.getDay();
-    if (HOURS[dow] === null) continue; // domingo, no se muestra
+
+    if (HOURS[dow] === null || HOURS[dow] === undefined) continue;
 
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.className = 'date-option' + (selectedDate && dateKey(selectedDate) === dateKey(d) ? ' selected' : '');
-    btn.innerHTML = `<span class="dow">${DOW_LABELS[dow]}</span><span class="dnum">${d.getDate()}</span>`;
+    btn.className = 'date-option' +
+      (selectedDate && dateKey(selectedDate) === dateKey(d) ? ' selected' : '');
+    btn.innerHTML = `
+      <span class="dow">${DOW_LABELS[dow]}</span>
+      <span class="dnum">${d.getDate()}</span>
+    `;
     btn.addEventListener('click', () => {
       selectedDate = d;
       selectedTime = null;
@@ -130,39 +187,50 @@ function renderDates() {
   }
 }
 
-// ---------- Render: horas disponibles ----------
+// ---------- Render horas ----------
 const timeSelectEl = document.getElementById('timeSelect');
+
 async function renderTimes() {
   timeSelectEl.innerHTML = '';
 
   if (!selectedService || !selectedDate) {
-    timeSelectEl.innerHTML = '<p class="hint">Elige primero un servicio y una fecha.</p>';
+    timeSelectEl.innerHTML =
+      '<p class="hint">Elige primero un servicio y una fecha.</p>';
     return;
   }
 
-  const dow = selectedDate.getDay();
+  const dow   = selectedDate.getDay();
   const hours = HOURS[dow];
+
   if (!hours) {
     timeSelectEl.innerHTML = '<p class="hint">Cerrado ese día.</p>';
     return;
   }
 
-  timeSelectEl.innerHTML = '<p class="hint">Cargando horarios disponibles…</p>';
-  const citas = await loadCitasDelDia(dateKey(selectedDate));
-  timeSelectEl.innerHTML = '';
+  timeSelectEl.innerHTML =
+    '<p class="hint">Cargando horarios disponibles…</p>';
+
+  const citas    = await loadCitasDelDia(dateKey(selectedDate));
   const duration = selectedService.duration;
 
+  timeSelectEl.innerHTML = '';
   let anySlot = false;
+
   for (let t = hours.open; t + duration <= hours.close; t += SLOT_STEP) {
     anySlot = true;
-    // Ocupado si se solapa con alguna cita existente
-    const taken = citas.some(c => t < c.start + c.duration && t + duration > c.start);
+
+    const taken = citas.some(c =>
+      t < c.start + c.duration && t + duration > c.start
+    );
 
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.className = 'time-option' + (taken ? ' taken' : '') + (selectedTime === t ? ' selected' : '');
+    btn.className = 'time-option' +
+      (taken ? ' taken' : '') +
+      (selectedTime === t ? ' selected' : '');
     btn.textContent = minutesToLabel(t);
     btn.disabled = taken;
+
     if (!taken) {
       btn.addEventListener('click', () => {
         selectedTime = t;
@@ -174,24 +242,33 @@ async function renderTimes() {
   }
 
   if (!anySlot) {
-    timeSelectEl.innerHTML = '<p class="hint">No hay horarios disponibles ese día para este servicio.</p>';
+    timeSelectEl.innerHTML =
+      '<p class="hint">No hay horarios disponibles ese día.</p>';
   }
 }
 
-// ---------- Resumen y envío ----------
+// ---------- Resumen ----------
 const bookingSummaryEl = document.getElementById('bookingSummary');
+
 function updateSummary() {
   if (!selectedService || !selectedDate || selectedTime === null) {
     bookingSummaryEl.textContent = '';
     return;
   }
-  const dateLabel = selectedDate.toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long' });
-  bookingSummaryEl.textContent =
-    `${selectedService.name} · ${dateLabel} · ${minutesToLabel(selectedTime)} · ${formatCOP(selectedService.price)}`;
+  const dateLabel = selectedDate.toLocaleDateString('es-CO', {
+    weekday: 'long', day: 'numeric', month: 'long',
+  });
+  bookingSummaryEl.innerHTML = `
+    <strong>${selectedService.name}</strong> · 
+    ${dateLabel} · 
+    ${minutesToLabel(selectedTime)} · 
+    ${formatCOP(selectedService.price)}
+  `;
 }
 
+// ---------- Envío ----------
 const bookingForm = document.getElementById('bookingForm');
-const formMsgEl = document.getElementById('formMsg');
+const formMsgEl   = document.getElementById('formMsg');
 
 bookingForm.addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -199,13 +276,15 @@ bookingForm.addEventListener('submit', async (e) => {
   formMsgEl.textContent = '';
 
   if (!selectedService || !selectedDate || selectedTime === null) {
-    formMsgEl.textContent = 'Por favor elige servicio, fecha y hora antes de confirmar.';
+    formMsgEl.textContent =
+      'Por favor elige servicio, fecha y hora antes de confirmar.';
     formMsgEl.classList.add('error');
     return;
   }
 
-  const name = document.getElementById('clientName').value.trim();
+  const name  = document.getElementById('clientName').value.trim();
   const phone = document.getElementById('clientPhone').value.trim();
+
   if (!name || !phone) {
     formMsgEl.textContent = 'Completa tu nombre y teléfono.';
     formMsgEl.classList.add('error');
@@ -216,25 +295,30 @@ bookingForm.addEventListener('submit', async (e) => {
   submitBtn.disabled = true;
   formMsgEl.textContent = 'Confirmando...';
 
-  // Revalidar disponibilidad justo antes de guardar (evita doble reserva)
-  const citas = await loadCitasDelDia(dateKey(selectedDate));
+  // Revalidar antes de guardar
+  const citas    = await loadCitasDelDia(dateKey(selectedDate));
   const conflict = citas.some(c =>
-    selectedTime < c.start + c.duration && selectedTime + selectedService.duration > c.start
+    selectedTime < c.start + c.duration &&
+    selectedTime + selectedService.duration > c.start
   );
+
   if (conflict) {
-    formMsgEl.textContent = 'Ese horario ya se acaba de ocupar. Elige otra hora.';
+    formMsgEl.textContent =
+      'Ese horario ya se acaba de ocupar. Elige otra hora.';
     formMsgEl.classList.add('error');
     submitBtn.disabled = false;
+    selectedTime = null;
     renderTimes();
+    updateSummary();
     return;
   }
 
   const error = await guardarCita({
-    dateKey: dateKey(selectedDate),
-    start: selectedTime,
+    dateKey:  dateKey(selectedDate),
+    start:    selectedTime,
     duration: selectedService.duration,
-    service: selectedService.name,
-    price: selectedService.price,
+    service:  selectedService.name,
+    price:    selectedService.price,
     name,
     phone,
   });
@@ -243,21 +327,30 @@ bookingForm.addEventListener('submit', async (e) => {
 
   if (error) {
     console.error('Error guardando cita:', error);
-    formMsgEl.textContent = 'Hubo un problema guardando tu cita. Intenta de nuevo.';
+    formMsgEl.textContent =
+      'Hubo un problema guardando tu cita. Intenta de nuevo.';
     formMsgEl.classList.add('error');
     return;
   }
 
-  formMsgEl.textContent = `¡Listo, ${name}! Tu cita de ${selectedService.name} quedó confirmada para el ${selectedDate.toLocaleDateString('es-CO', { day: 'numeric', month: 'long' })} a las ${minutesToLabel(selectedTime)}.`;
+  const dateLabel = selectedDate.toLocaleDateString('es-CO', {
+    day: 'numeric', month: 'long',
+  });
+  formMsgEl.textContent =
+    `¡Listo, ${name}! Tu cita de ${selectedService.name} quedó confirmada ` +
+    `para el ${dateLabel} a las ${minutesToLabel(selectedTime)}.`;
   formMsgEl.classList.add('ok');
 
+  // Resetear todo
   bookingForm.reset();
-  selectedTime = null;
+  selectedService = null;
+  selectedDate    = null;
+  selectedTime    = null;
+  renderServices();
+  renderDates();
   renderTimes();
   updateSummary();
 });
 
-// ---------- Init ----------
-renderServices();
-renderDates();
-renderTimes();
+// ---------- Arrancar ----------
+initPage();
