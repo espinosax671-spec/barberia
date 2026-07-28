@@ -1,46 +1,85 @@
-.login-wide {
-  max-width: 520px !important;
+.auth-body {
+  min-height: 100vh;
+  background: var(--off-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
 }
 
-.login-brand {
+.auth-container {
+  width: 100%;
+  max-width: 480px;
+}
+
+.auth-brand {
   text-align: center;
-  margin-bottom: 28px;
+  margin-bottom: 32px;
 }
-.login-brand .brand-name {
-  font-size: 1rem;
+.auth-brand a {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-display);
+  font-size: 1.3rem;
   letter-spacing: 0.1em;
+  color: var(--navy);
+}
+.auth-brand-mark {
+  width: 32px;
+  height: 32px;
+  color: var(--red);
 }
 
-.login-tabs {
+.auth-card {
+  background: var(--white);
+  padding: 40px 36px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--line);
+}
+
+.auth-tabs {
   display: flex;
   border-bottom: 1px solid var(--line);
   margin-bottom: 28px;
+  gap: 4px;
 }
-.login-tab {
+.auth-tab {
   flex: 1;
   border: none;
   background: none;
   padding: 12px;
   font-family: var(--font-display);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
   font-size: 0.82rem;
-  color: #888;
+  color: var(--gray-500);
   cursor: pointer;
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
   transition: color 0.15s ease;
 }
-.login-tab.active {
+.auth-tab.active {
   color: var(--navy);
   border-bottom-color: var(--red);
 }
 
-.login-panel { animation: fadeIn 0.2s ease; }
-
+.auth-panel { animation: fadeIn 0.25s ease; }
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }
+}
+
+.auth-title {
+  font-size: 1.4rem;
+  margin-bottom: 6px;
+  color: var(--navy);
+}
+.auth-subtitle {
+  color: var(--gray-500);
+  font-size: 0.9rem;
+  margin-bottom: 24px;
 }
 
 .form-row-2 {
@@ -48,57 +87,79 @@
   grid-template-columns: 1fr 1fr;
   gap: 14px;
 }
-.form-row-2 .field { margin-bottom: 0; }
-
-.field-hint {
-  display: block;
-  font-size: 0.75rem;
-  color: #999;
-  font-weight: 400;
-  margin-top: 2px;
-}
+.form-row-2 .field { margin-bottom: 18px; }
 
 .subdominio-wrap {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   border: 1.5px solid var(--line);
   border-radius: var(--radius);
   overflow: hidden;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.subdominio-wrap:focus-within {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(40,86,214,0.1);
 }
 .subdominio-wrap input {
   border: none !important;
   flex: 1;
+  box-shadow: none !important;
 }
 .subdominio-wrap input:focus { outline: none; }
 .subdominio-suffix {
+  display: flex;
+  align-items: center;
   background: var(--off-white);
-  padding: 12px 12px;
+  padding: 0 14px;
   font-size: 0.82rem;
-  color: #777;
+  color: var(--gray-500);
   border-left: 1.5px solid var(--line);
   white-space: nowrap;
 }
 
-.login-panel .field { margin-bottom: 16px; }
-.login-panel .field label {
-  display: block;
-  font-size: 0.82rem;
-  color: #555;
-  margin-bottom: 6px;
+.auth-footer {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 0.85rem;
+  color: var(--gray-500);
 }
-.login-panel .field input {
-  width: 100%;
-  padding: 12px 14px;
-  border: 1.5px solid var(--line);
-  border-radius: var(--radius);
-  font-family: var(--font-body);
+.auth-footer a {
+  color: var(--blue);
+  font-weight: 500;
+}
+.auth-footer a:hover { text-decoration: underline; }
+
+/* Estado "revisa tu correo" */
+.check-email {
+  text-align: center;
+  padding: 20px 0;
+}
+.check-email-icon {
+  width: 64px;
+  height: 64px;
+  background: var(--blue-soft);
+  color: var(--blue);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+}
+.check-email-icon svg { width: 32px; height: 32px; }
+.check-email h2 {
+  font-size: 1.3rem;
+  margin-bottom: 10px;
+  color: var(--navy);
+}
+.check-email p {
+  color: var(--gray-500);
   font-size: 0.95rem;
+  margin-bottom: 8px;
 }
-.login-panel .field input:focus {
-  outline: none;
-  border-color: var(--blue);
-}
+.check-email strong { color: var(--ink); }
 
 @media (max-width: 540px) {
   .form-row-2 { grid-template-columns: 1fr; }
+  .auth-card { padding: 32px 24px; }
 }
