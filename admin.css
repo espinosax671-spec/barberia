@@ -1,4 +1,7 @@
-.admin-body { background: var(--off-white); min-height: 100vh; }
+.admin-body { 
+  background: var(--off-white); 
+  min-height: 100vh; 
+}
 
 .admin-login {
   min-height: 100vh;
@@ -39,7 +42,10 @@
   font-family: var(--font-body);
   font-size: 0.95rem;
 }
-.admin-login-box input:focus { outline: none; border-color: var(--blue); }
+.admin-login-box input:focus { 
+  outline: none; 
+  border-color: var(--blue); 
+}
 
 .admin-header {
   background: var(--white);
@@ -95,7 +101,12 @@
 .cita-card.completada { border-left-color: #157a3d; opacity: 0.7; }
 .cita-card.cancelada { border-left-color: var(--red); opacity: 0.6; }
 
-.cita-info strong { display: block; color: var(--navy); font-size: 1rem; margin-bottom: 4px; }
+.cita-info strong { 
+  display: block; 
+  color: var(--navy); 
+  font-size: 1rem; 
+  margin-bottom: 4px; 
+}
 .cita-info span { display: block; font-size: 0.86rem; color: #666; }
 .cita-actions { display: flex; gap: 8px; }
 .cita-actions button {
@@ -109,3 +120,140 @@
 }
 .cita-actions button:hover { border-color: var(--blue); }
 .cita-actions .cancel-btn:hover { border-color: var(--red); color: var(--red); }
+
+/* ---------- Panel ---------- */
+.panel-loading {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.panel-subdominio {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--blue);
+  text-decoration: none;
+  margin-top: 2px;
+}
+.plan-badge {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 5px 10px;
+  border-radius: 20px;
+  background: #eef4ff;
+  color: var(--blue);
+  font-weight: 600;
+}
+.plan-badge.vencida,
+.plan-badge.cancelada {
+  background: #fdf1f2;
+  color: var(--red);
+}
+
+.panel-tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--line);
+  padding-top: 8px;
+}
+.tab-btn {
+  border: none;
+  background: none;
+  padding: 14px 18px;
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.82rem;
+  color: #888;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+}
+.tab-btn.active {
+  color: var(--navy);
+  border-bottom-color: var(--red);
+}
+
+.servicios-list,
+.horarios-list { display: flex; flex-direction: column; gap: 10px; }
+
+.servicio-row {
+  background: var(--white);
+  border: 1px solid var(--line);
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.servicio-row input[type="text"] { flex: 2; min-width: 140px; }
+.servicio-row input[type="number"] { flex: 1; min-width: 90px; }
+.servicio-row input {
+  padding: 9px 10px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+}
+.servicio-row .servicio-actions { 
+  display: flex; 
+  gap: 6px; 
+  margin-left: auto; 
+}
+.servicio-row button {
+  border: 1.5px solid var(--line);
+  background: var(--white);
+  padding: 7px 12px;
+  font-size: 0.76rem;
+  cursor: pointer;
+  border-radius: var(--radius);
+}
+.servicio-row.inactivo { opacity: 0.5; }
+
+.horario-row {
+  background: var(--white);
+  border: 1px solid var(--line);
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.horario-row .dia-nombre {
+  min-width: 90px;
+  font-weight: 500;
+  color: var(--navy);
+  font-size: 0.9rem;
+}
+.horario-row label { 
+  display: flex; 
+  align-items: center; 
+  gap: 6px; 
+  font-size: 0.85rem; 
+  color: #555; 
+}
+.horario-row input[type="time"] {
+  padding: 7px 8px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.negocio-form { 
+  max-width: 440px; 
+  display: flex; 
+  flex-direction: column; 
+  gap: 16px; 
+}
+.negocio-form .field label { 
+  display: block; 
+  font-size: 0.82rem; 
+  color: #555; 
+  margin-bottom: 6px; 
+}
+.negocio-form .field input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  font-family: var(--font-body);
+}
