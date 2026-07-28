@@ -1,1 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel de tu barbería</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="admin.css">
+<link rel="stylesheet" href="panel.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="admin-body">
 
+<div id="loadingView" class="panel-loading"><p class="hint">Cargando tu panel…</p></div>
+
+<div id="panelView" class="admin-panel" style="display:none;">
+  <header class="admin-header">
+    <div>
+      <span class="brand-name" id="negocioNombre">Mi barbería</span>
+      <a id="negocioLink" href="#" target="_blank" class="panel-subdominio"></a>
+    </div>
+    <div class="admin-header-right">
+      <span id="planBadge" class="plan-badge"></span>
+      <button id="logoutBtn" class="btn btn-ghost">Cerrar sesión</button>
+    </div>
+  </header>
+
+  <nav class="panel-tabs container">
+    <button class="tab-btn active" data-tab="citas">Citas</button>
+    <button class="tab-btn" data-tab="servicios">Servicios</button>
+    <button class="tab-btn" data-tab="horarios">Horarios</button>
+    <button class="tab-btn" data-tab="negocio">Mi negocio</button>
+  </nav>
+
+  <main class="container admin-main">
+
+    <!-- CITAS -->
+    <section class="tab-panel" id="tab-citas">
+      <div class="admin-toolbar">
+        <h2>Agenda de citas</h2>
+        <div class="admin-filter">
+          <label for="filterDate">Ver día:</label>
+          <input type="date" id="filterDate">
+          <button id="clearFilter" class="btn btn-ghost btn-sm">Ver todas</button>
+        </div>
+      </div>
+      <div id="citasList" class="citas-list"><p class="hint">Cargando…</p></div>
+    </section>
+
+    <!-- SERVICIOS -->
+    <section class="tab-panel" id="tab-servicios" style="display:none;">
+      <div class="admin-toolbar">
+        <h2>Servicios y precios</h2>
+        <button id="addServicioBtn" class="btn btn-primary btn-sm">+ Nuevo servicio</button>
+      </div>
+      <div id="serviciosList" class="servicios-list"></div>
+    </section>
+
+    <!-- HORARIOS -->
+    <section class="tab-panel" id="tab-horarios" style="display:none;">
+      <div class="admin-toolbar"><h2>Horario de atención</h2></div>
+      <div id="horariosList" class="horarios-list"></div>
+      <button id="guardarHorariosBtn" class="btn btn-primary" style="margin-top:20px;">Guardar horario</button>
+      <p class="form-msg" id="horarioMsg"></p>
+    </section>
+
+    <!-- MI NEGOCIO -->
+    <section class="tab-panel" id="tab-negocio" style="display:none;">
+      <div class="admin-toolbar"><h2>Datos de mi negocio</h2></div>
+      <form id="negocioForm" class="negocio-form">
+        <div class="field">
+          <label for="campoNombre">Nombre de la barbería</label>
+          <input type="text" id="campoNombre">
+        </div>
+        <div class="field">
+          <label for="campoDireccion">Dirección</label>
+          <input type="text" id="campoDireccion" placeholder="Calle, número, ciudad">
+        </div>
+        <div class="field">
+          <label for="campoTelefono">WhatsApp</label>
+          <input type="tel" id="campoTelefono">
+        </div>
+        <button type="submit" class="btn btn-primary">Guardar cambios</button>
+        <p class="form-msg" id="negocioMsg"></p>
+      </form>
+    </section>
+
+  </main>
+</div>
+
+<script src="config.js"></script>
+<script src="panel.js"></script>
+</body>
+</html>
