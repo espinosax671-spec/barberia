@@ -1,1 +1,177 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agendar cita</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="reservar.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="reservar-body">
 
+<!-- Loading -->
+<div id="loadingView" class="loading-view">
+  <div class="spinner"></div>
+  <p class="hint">Cargando barbería…</p>
+</div>
+
+<!-- No encontrado -->
+<div id="notFoundView" class="not-found-view" style="display:none;">
+  <div>
+    <h1>Barbería no encontrada</h1>
+    <p>Verifica el enlace o pídele al dueño que te comparta la URL correcta.</p>
+  </div>
+</div>
+
+<!-- Vista principal -->
+<div id="mainView" style="display:none;">
+
+  <!-- Hero -->
+  <section class="reservar-hero">
+    <div class="reservar-hero-stripe"></div>
+    <div class="reservar-hero-inner">
+      <p class="reservar-eyebrow" id="heroCiudad">Barbería</p>
+      <h1 id="heroNombre">Cargando...</h1>
+      <p id="heroDescripcion"></p>
+    </div>
+  </section>
+
+  <!-- Main reservación -->
+  <main class="reservar-main">
+
+    <!-- Paso 1: Barbero -->
+    <section class="step-card">
+      <div class="step-label">
+        <span class="step-number">1</span>
+        Elige tu barbero
+      </div>
+      <div id="barberosGrid" class="barberos-grid">
+        <p class="hint">Cargando barberos...</p>
+      </div>
+    </section>
+
+    <!-- Paso 2: Servicio -->
+    <section class="step-card">
+      <div class="step-label">
+        <span class="step-number">2</span>
+        Elige el servicio
+      </div>
+      <div id="serviciosGrid" class="servicios-grid">
+        <p class="hint">Selecciona primero un barbero.</p>
+      </div>
+    </section>
+
+    <!-- Paso 3: Fecha -->
+    <section class="step-card">
+      <div class="step-label">
+        <span class="step-number">3</span>
+        Elige la fecha
+      </div>
+      <div id="fechasScroll" class="fechas-scroll">
+        <p class="hint">Selecciona primero un barbero.</p>
+      </div>
+    </section>
+
+    <!-- Paso 4: Hora -->
+    <section class="step-card">
+      <div class="step-label">
+        <span class="step-number">4</span>
+        Elige la hora
+      </div>
+      <div id="horasGrid" class="horas-grid">
+        <p class="hint">Elige un servicio y una fecha para ver los horarios.</p>
+      </div>
+    </section>
+
+    <!-- Paso 5: Datos -->
+    <section class="step-card">
+      <div class="step-label">
+        <span class="step-number">5</span>
+        Tus datos
+      </div>
+      <form id="reservaForm" class="datos-form">
+        <div class="form-row">
+          <div class="field">
+            <label for="clientName">Nombre completo</label>
+            <input type="text" id="clientName" required placeholder="Tu nombre">
+          </div>
+          <div class="field">
+            <label for="clientPhone">Número de teléfono</label>
+            <input type="tel" id="clientPhone" required placeholder="3000000000">
+          </div>
+        </div>
+        <div id="bookingSummary" class="booking-summary" style="display:none;"></div>
+        <button type="submit" class="btn btn-primary btn-block btn-lg">Confirmar mi cita</button>
+        <p class="form-msg" id="formMsg"></p>
+      </form>
+    </section>
+
+  </main>
+
+  <!-- Info negocio -->
+  <section class="info-negocio">
+    <div class="info-negocio-inner">
+      <div class="info-block">
+        <h3>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+            <circle cx="12" cy="10" r="3"/>
+          </svg>
+          Ubicación
+        </h3>
+        <p id="infoDireccion">Sin dirección registrada</p>
+        <p id="infoCiudad"></p>
+        <p id="infoTelefono"></p>
+      </div>
+      <div class="info-block">
+        <h3>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 6v6l4 2"/>
+          </svg>
+          Horario de atención
+        </h3>
+        <ul class="horario-lista" id="horarioLista"></ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="reservar-footer">
+    <p>Powered by <a href="index.html">CitaBarber</a></p>
+  </footer>
+
+</div>
+
+<!-- Vista éxito -->
+<div id="successView" style="display:none;">
+  <section class="reservar-hero">
+    <div class="reservar-hero-stripe"></div>
+    <div class="reservar-hero-inner">
+      <p class="reservar-eyebrow">Reserva confirmada</p>
+      <h1 id="successNombreNegocio">Barbería</h1>
+    </div>
+  </section>
+
+  <main class="reservar-main">
+    <div class="step-card success-view">
+      <div class="success-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+      </div>
+      <h2 id="successTitulo">¡Tu cita está confirmada!</h2>
+      <p>Guarda estos datos para tu cita:</p>
+      <div class="success-detail" id="successDetail"></div>
+      <a href="#" onclick="location.reload()" class="btn btn-ghost">Agendar otra cita</a>
+    </div>
+  </main>
+</div>
+
+<script src="config.js"></script>
+<script src="reservar.js"></script>
+</body>
+</html>
