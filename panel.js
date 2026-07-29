@@ -123,6 +123,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 
     if (btn.dataset.tab === 'servicios') loadServicios();
     if (btn.dataset.tab === 'horarios') loadHorarios();
+    if (btn.dataset.tab === 'citas') loadCitas();
   });
 });
 
@@ -660,7 +661,13 @@ function renderNotifDropdown(notifs) {
 document.getElementById('notifBtn').addEventListener('click', (e) => {
   e.stopPropagation();
   const dd = document.getElementById('notifDropdown');
-  dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
+  const wasHidden = dd.style.display === 'none';
+  dd.style.display = wasHidden ? 'block' : 'none';
+  // Al abrir la campana, recargar citas y notificaciones
+  if (wasHidden) {
+    loadCitas();
+    loadNotificaciones();
+  }
 });
 
 document.addEventListener('click', (e) => {
@@ -669,8 +676,11 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// Auto-refresh notificaciones cada 30 segundos
-setInterval(loadNotificaciones, 30000);
+// Auto-refresh cada 30 segundos (notificaciones + citas)
+setInterval(() => {
+  loadNotificaciones();
+  loadCitas();
+}, 30000);
 
 // Arrancar
 init();
