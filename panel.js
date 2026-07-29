@@ -81,6 +81,13 @@ async function init() {
   document.getElementById('negocioNombre').textContent = negocio.nombre;
   document.getElementById('userEmail').textContent = userEmail;
 
+  // Cargar logo en header
+  if (negocio.logo_url) {
+    const headerLogo = document.getElementById('headerLogo');
+    headerLogo.src = negocio.logo_url;
+    headerLogo.style.display = 'block';
+  }
+
   const badge = document.getElementById('planBadge');
   const estadoLabels = {
     trial: '🎁 Prueba gratis',
@@ -127,9 +134,7 @@ function initRealtime() {
         filter: `negocio_id=eq.${negocio.id}`,
       },
       (payload) => {
-        console.log('📥 Cambio en citas:', payload.eventType);
         loadCitas();
-
         if (payload.eventType === 'INSERT') {
           const cita = payload.new;
           showToast(`🔔 Nueva cita: ${cita.nombre_cliente}`);
@@ -137,9 +142,7 @@ function initRealtime() {
         }
       }
     )
-    .subscribe((status) => {
-      console.log('📡 Estado canal citas:', status);
-    });
+    .subscribe();
 
   supabaseClient
     .channel('notif-' + negocio.id)
@@ -152,7 +155,6 @@ function initRealtime() {
         filter: `negocio_id=eq.${negocio.id}`,
       },
       () => {
-        console.log('🔔 Nueva notificación');
         loadNotificaciones();
       }
     )
@@ -200,10 +202,7 @@ async function loadBarberos() {
     .eq('negocio_id', negocio.id)
     .order('orden', { ascending: true });
 
-  if (error) {
-    console.error(error);
-    return;
-  }
+  if (error) { console.error(error); return; }
 
   barberos = data || [];
 
@@ -310,24 +309,18 @@ document.getElementById('barberoForm').addEventListener('submit', async (e) => {
       .from('barberos')
       .insert({
         negocio_id: negocio.id,
-        nombre,
-        telefono,
-        activo: true,
+        nombre, telefono, activo: true,
         orden: barberos.length + 1,
       })
-      .select()
-      .single();
+      .select().single();
 
     if (nuevoBarbero) {
       const horarios = HORARIOS_DEFAULT.map(h => ({
-        ...h,
-        negocio_id: negocio.id,
-        barbero_id: nuevoBarbero.id,
+        ...h, negocio_id: negocio.id, barbero_id: nuevoBarbero.id,
       }));
       await supabaseClient.from('horarios').insert(horarios);
 
       let serviciosBase = [];
-
       if (barberos.length > 0) {
         const { data: serviciosExistentes } = await supabaseClient
           .from('servicios')
@@ -336,7 +329,6 @@ document.getElementById('barberoForm').addEventListener('submit', async (e) => {
           .eq('barbero_id', barberos[0].id)
           .eq('activo', true)
           .order('orden', { ascending: true });
-
         serviciosBase = serviciosExistentes || [];
       }
 
@@ -351,15 +343,9 @@ document.getElementById('barberoForm').addEventListener('submit', async (e) => {
       }
 
       const serviciosParaCrear = serviciosBase.map(s => ({
-        nombre: s.nombre,
-        precio: s.precio,
-        duracion_min: s.duracion_min,
-        orden: s.orden,
-        negocio_id: negocio.id,
-        barbero_id: nuevoBarbero.id,
-        activo: true,
+        nombre: s.nombre, precio: s.precio, duracion_min: s.duracion_min, orden: s.orden,
+        negocio_id: negocio.id, barbero_id: nuevoBarbero.id, activo: true,
       }));
-
       await supabaseClient.from('servicios').insert(serviciosParaCrear);
     }
     showToast('Barbero creado con sus servicios');
@@ -376,10 +362,7 @@ async function loadCitas() {
     .order('fecha', { ascending: false })
     .order('hora_inicio', { ascending: true });
 
-  if (error) {
-    console.error(error);
-    return;
-  }
+  if (error) { console.error(error); return; }
 
   citas = data || [];
   renderCitas();
@@ -449,11 +432,9 @@ function renderCitas() {
   });
 
   list.querySelectorAll('.complete-btn').forEach(b =>
-    b.addEventListener('click', () => updateEstadoCita(b.dataset.id, 'completada'))
-  );
+    b.addEventListener('click', () => updateEstadoCita(b.dataset.id, 'completada')));
   list.querySelectorAll('.cancel-btn').forEach(b =>
-    b.addEventListener('click', () => updateEstadoCita(b.dataset.id, 'cancelada'))
-  );
+    b.addEventListener('click', () => updateEstadoCita(b.dataset.id, 'cancelada')));
 }
 
 async function updateEstadoCita(id, estado) {
@@ -483,17 +464,10 @@ async function loadServicios() {
     .order('orden', { ascending: true });
 
   const list = document.getElementById('serviciosList');
-  if (error) {
-    list.innerHTML = '<p class="hint">Error cargando servicios.</p>';
-    return;
-  }
+  if (error) { list.innerHTML = '<p class="hint">Error.</p>'; return; }
 
   if (!data.length) {
-    list.innerHTML = `
-      <div class="empty-state">
-        <h3>Este barbero no tiene servicios</h3>
-        <p>Agrega servicios para que los clientes puedan reservar.</p>
-      </div>`;
+    list.innerHTML = `<div class="empty-state"><h3>Este barbero no tiene servicios</h3><p>Agrega servicios para que los clientes puedan reservar.</p></div>`;
     return;
   }
 
@@ -514,7 +488,6 @@ function renderServicioRow(s) {
       <button class="delete-btn">Eliminar</button>
     </div>
   `;
-
   row.querySelector('.save-btn').addEventListener('click', async () => {
     const nombre = row.querySelector('[data-field="nombre"]').value.trim();
     const precio = parseInt(row.querySelector('[data-field="precio"]').value, 10);
@@ -523,35 +496,24 @@ function renderServicioRow(s) {
     showToast('Servicio actualizado');
     loadServicios();
   });
-
   row.querySelector('.toggle-btn').addEventListener('click', async () => {
     await supabaseClient.from('servicios').update({ activo: !s.activo }).eq('id', s.id);
     loadServicios();
   });
-
   row.querySelector('.delete-btn').addEventListener('click', async () => {
     if (!confirm(`¿Eliminar "${s.nombre}"?`)) return;
     await supabaseClient.from('servicios').delete().eq('id', s.id);
     showToast('Servicio eliminado');
     loadServicios();
   });
-
   return row;
 }
 
 document.getElementById('addServicioBtn').addEventListener('click', async () => {
-  if (!currentBarberoServicios) {
-    showToast('Selecciona un barbero primero', 'error');
-    return;
-  }
+  if (!currentBarberoServicios) { showToast('Selecciona un barbero primero', 'error'); return; }
   await supabaseClient.from('servicios').insert({
-    negocio_id: negocio.id,
-    barbero_id: currentBarberoServicios,
-    nombre: 'Nuevo servicio',
-    precio: 0,
-    duracion_min: 30,
-    activo: true,
-    orden: 999,
+    negocio_id: negocio.id, barbero_id: currentBarberoServicios,
+    nombre: 'Nuevo servicio', precio: 0, duracion_min: 30, activo: true, orden: 999,
   });
   loadServicios();
 });
@@ -561,17 +523,13 @@ async function loadHorarios() {
   renderBarberosSelectors();
 
   const { data, error } = await supabaseClient
-    .from('horarios')
-    .select('*')
+    .from('horarios').select('*')
     .eq('negocio_id', negocio.id)
     .eq('barbero_id', currentBarberoHorarios)
     .order('dia_semana', { ascending: true });
 
   const list = document.getElementById('horariosList');
-  if (error) {
-    list.innerHTML = '<p class="hint">Error cargando horarios.</p>';
-    return;
-  }
+  if (error) { list.innerHTML = '<p class="hint">Error.</p>'; return; }
 
   list.innerHTML = '';
   data.forEach(h => {
@@ -583,20 +541,13 @@ async function loadHorarios() {
     row.innerHTML = `
       <div class="horario-header">
         <span class="dia-nombre">${DIAS[h.dia_semana]}</span>
-        <label>
-          <input type="checkbox" class="abierto-check" ${abierto ? 'checked' : ''}>
-          Abierto
-        </label>
+        <label><input type="checkbox" class="abierto-check" ${abierto ? 'checked' : ''}> Abierto</label>
       </div>
       <div class="horario-turnos" ${abierto ? '' : 'style="display:none;"'}>
         <div class="turno">
           <span class="turno-label">Mañana</span>
-          <label>Desde
-            <input type="time" class="abre-input" value="${minutesToHHMM(h.abre_minuto) || '08:00'}">
-          </label>
-          <label>Hasta
-            <input type="time" class="cierra-input" value="${minutesToHHMM(h.cierra_minuto) || '12:00'}">
-          </label>
+          <label>Desde <input type="time" class="abre-input" value="${minutesToHHMM(h.abre_minuto) || '08:00'}"></label>
+          <label>Hasta <input type="time" class="cierra-input" value="${minutesToHHMM(h.cierra_minuto) || '12:00'}"></label>
         </div>
         <label class="turno-toggle">
           <input type="checkbox" class="tarde-check" ${tieneTarde ? 'checked' : ''}>
@@ -604,16 +555,11 @@ async function loadHorarios() {
         </label>
         <div class="turno turno-tarde" ${tieneTarde ? '' : 'style="display:none;"'}>
           <span class="turno-label">Tarde</span>
-          <label>Desde
-            <input type="time" class="abre-tarde-input" value="${minutesToHHMM(h.abre_minuto_tarde) || '14:00'}">
-          </label>
-          <label>Hasta
-            <input type="time" class="cierra-tarde-input" value="${minutesToHHMM(h.cierra_minuto_tarde) || '19:00'}">
-          </label>
+          <label>Desde <input type="time" class="abre-tarde-input" value="${minutesToHHMM(h.abre_minuto_tarde) || '14:00'}"></label>
+          <label>Hasta <input type="time" class="cierra-tarde-input" value="${minutesToHHMM(h.cierra_minuto_tarde) || '19:00'}"></label>
         </div>
       </div>
     `;
-
     const check = row.querySelector('.abierto-check');
     const turnos = row.querySelector('.horario-turnos');
     const tardeCheck = row.querySelector('.tarde-check');
@@ -622,11 +568,9 @@ async function loadHorarios() {
     check.addEventListener('change', () => {
       turnos.style.display = check.checked ? 'block' : 'none';
     });
-
     tardeCheck.addEventListener('change', () => {
       turnoTarde.style.display = tardeCheck.checked ? 'flex' : 'none';
     });
-
     list.appendChild(row);
   });
 }
@@ -637,22 +581,17 @@ document.getElementById('guardarHorariosBtn').addEventListener('click', async ()
   filas.forEach(row => {
     const abierto = row.querySelector('.abierto-check').checked;
     const tieneTarde = row.querySelector('.tarde-check').checked;
-
     const abre = abierto ? hhmmToMinutes(row.querySelector('.abre-input').value) : null;
     const cierra = abierto ? hhmmToMinutes(row.querySelector('.cierra-input').value) : null;
     const abreTarde = (abierto && tieneTarde) ? hhmmToMinutes(row.querySelector('.abre-tarde-input').value) : null;
     const cierraTarde = (abierto && tieneTarde) ? hhmmToMinutes(row.querySelector('.cierra-tarde-input').value) : null;
-
     actualizaciones.push(
       supabaseClient.from('horarios').update({
-        abre_minuto: abre,
-        cierra_minuto: cierra,
-        abre_minuto_tarde: abreTarde,
-        cierra_minuto_tarde: cierraTarde,
+        abre_minuto: abre, cierra_minuto: cierra,
+        abre_minuto_tarde: abreTarde, cierra_minuto_tarde: cierraTarde,
       }).eq('id', row.dataset.id)
     );
   });
-
   const resultados = await Promise.all(actualizaciones);
   const huboError = resultados.some(r => r.error);
   showToast(huboError ? 'Error al guardar' : 'Horarios actualizados', huboError ? 'error' : 'success');
@@ -664,11 +603,25 @@ function loadNegocioForm() {
   document.getElementById('campoDireccion').value = negocio.direccion || '';
   document.getElementById('campoCiudad').value = negocio.ciudad || '';
   document.getElementById('campoTelefono').value = negocio.telefono_whatsapp || '';
+
+  const logoImg = document.getElementById('logoImg');
+  const logoPlaceholder = document.getElementById('logoPlaceholder');
+  const removeBtn = document.getElementById('removeLogoBtn');
+
+  if (negocio.logo_url) {
+    logoImg.src = negocio.logo_url;
+    logoImg.style.display = 'block';
+    logoPlaceholder.style.display = 'none';
+    removeBtn.style.display = 'inline-flex';
+  } else {
+    logoImg.style.display = 'none';
+    logoPlaceholder.style.display = 'block';
+    removeBtn.style.display = 'none';
+  }
 }
 
 document.getElementById('negocioForm').addEventListener('submit', async (e) => {
   e.preventDefault();
-
   const nombre = document.getElementById('campoNombre').value.trim();
   const descripcion = document.getElementById('campoDescripcion').value.trim();
   const direccion = document.getElementById('campoDireccion').value.trim();
@@ -687,13 +640,82 @@ document.getElementById('negocioForm').addEventListener('submit', async (e) => {
   showToast('Datos actualizados');
 });
 
+// ---------- LOGO UPLOAD ----------
+document.getElementById('uploadLogoBtn').addEventListener('click', () => {
+  document.getElementById('logoInput').click();
+});
+
+document.getElementById('logoInput').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  if (file.size > 2 * 1024 * 1024) {
+    showToast('El logo no puede pesar más de 2MB', 'error');
+    return;
+  }
+  if (!file.type.startsWith('image/')) {
+    showToast('Solo se aceptan imágenes', 'error');
+    return;
+  }
+
+  showToast('Subiendo logo...');
+
+  const fileExt = file.name.split('.').pop();
+  const fileName = `logo-${Date.now()}.${fileExt}`;
+  const filePath = `${negocio.id}/${fileName}`;
+
+  const { error: uploadError } = await supabaseClient.storage
+    .from('logos')
+    .upload(filePath, file, { cacheControl: '3600', upsert: true });
+
+  if (uploadError) {
+    console.error(uploadError);
+    return showToast('Error al subir: ' + uploadError.message, 'error');
+  }
+
+  const { data: urlData } = supabaseClient.storage.from('logos').getPublicUrl(filePath);
+  const logoUrl = urlData.publicUrl;
+
+  const { error: updateError } = await supabaseClient
+    .from('negocios').update({ logo_url: logoUrl }).eq('id', negocio.id);
+
+  if (updateError) return showToast('Error al guardar logo', 'error');
+
+  negocio.logo_url = logoUrl;
+
+  document.getElementById('logoImg').src = logoUrl;
+  document.getElementById('logoImg').style.display = 'block';
+  document.getElementById('logoPlaceholder').style.display = 'none';
+  document.getElementById('removeLogoBtn').style.display = 'inline-flex';
+
+  const headerLogo = document.getElementById('headerLogo');
+  headerLogo.src = logoUrl;
+  headerLogo.style.display = 'block';
+
+  showToast('Logo actualizado');
+});
+
+document.getElementById('removeLogoBtn').addEventListener('click', async () => {
+  if (!confirm('¿Quitar el logo?')) return;
+
+  const { error } = await supabaseClient
+    .from('negocios').update({ logo_url: null }).eq('id', negocio.id);
+  if (error) return showToast('Error', 'error');
+
+  negocio.logo_url = null;
+  document.getElementById('logoImg').style.display = 'none';
+  document.getElementById('logoPlaceholder').style.display = 'block';
+  document.getElementById('removeLogoBtn').style.display = 'none';
+  document.getElementById('headerLogo').style.display = 'none';
+
+  showToast('Logo eliminado');
+});
+
 async function loadNotificaciones() {
   const { data } = await supabaseClient
-    .from('notificaciones')
-    .select('*')
+    .from('notificaciones').select('*')
     .eq('negocio_id', negocio.id)
-    .order('creado_en', { ascending: false })
-    .limit(20);
+    .order('creado_en', { ascending: false }).limit(20);
 
   const noLeidas = (data || []).filter(n => !n.leida).length;
   const badge = document.getElementById('notifBadge');
@@ -703,7 +725,6 @@ async function loadNotificaciones() {
   } else {
     badge.style.display = 'none';
   }
-
   renderNotifDropdown(data || []);
 }
 
@@ -713,8 +734,7 @@ function renderNotifDropdown(notifs) {
     <div class="notif-dropdown-header">
       <strong>Notificaciones</strong>
       ${notifs.some(n => !n.leida) ? '<button class="notif-mark-read" id="markAllReadBtn">Marcar leídas</button>' : ''}
-    </div>
-  `;
+    </div>`;
   if (!notifs.length) {
     dropdown.innerHTML += '<div class="notif-empty">No tienes notificaciones</div>';
     return;
@@ -725,22 +745,16 @@ function renderNotifDropdown(notifs) {
     const fecha = new Date(n.creado_en).toLocaleString('es-CO', {
       day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit'
     });
-    item.innerHTML = `
-      <strong>${n.titulo}</strong>
-      <p>${n.mensaje || ''}</p>
-      <time>${fecha}</time>
-    `;
+    item.innerHTML = `<strong>${n.titulo}</strong><p>${n.mensaje || ''}</p><time>${fecha}</time>`;
     dropdown.appendChild(item);
   });
 
   const markAllBtn = document.getElementById('markAllReadBtn');
   if (markAllBtn) {
     markAllBtn.addEventListener('click', async () => {
-      await supabaseClient
-        .from('notificaciones')
+      await supabaseClient.from('notificaciones')
         .update({ leida: true })
-        .eq('negocio_id', negocio.id)
-        .eq('leida', false);
+        .eq('negocio_id', negocio.id).eq('leida', false);
       loadNotificaciones();
     });
   }
@@ -751,10 +765,7 @@ document.getElementById('notifBtn').addEventListener('click', (e) => {
   const dd = document.getElementById('notifDropdown');
   const wasHidden = dd.style.display === 'none';
   dd.style.display = wasHidden ? 'block' : 'none';
-  if (wasHidden) {
-    loadCitas();
-    loadNotificaciones();
-  }
+  if (wasHidden) { loadCitas(); loadNotificaciones(); }
 });
 
 document.addEventListener('click', (e) => {
@@ -763,9 +774,6 @@ document.addEventListener('click', (e) => {
   }
 });
 
-setInterval(() => {
-  loadNotificaciones();
-  loadCitas();
-}, 60000);
+setInterval(() => { loadNotificaciones(); loadCitas(); }, 60000);
 
 init();
