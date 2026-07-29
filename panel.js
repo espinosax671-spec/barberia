@@ -121,7 +121,6 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.classList.add('active');
     document.getElementById('tab-' + btn.dataset.tab).style.display = 'block';
 
-    // Cargar contenido específico de la tab
     if (btn.dataset.tab === 'servicios') loadServicios();
     if (btn.dataset.tab === 'horarios') loadHorarios();
   });
@@ -142,7 +141,6 @@ async function loadBarberos() {
 
   barberos = data || [];
 
-  // Setear el primero como seleccionado por defecto
   if (barberos.length > 0) {
     if (!currentBarberoServicios) currentBarberoServicios = barberos[0].id;
     if (!currentBarberoHorarios) currentBarberoHorarios = barberos[0].id;
@@ -255,8 +253,8 @@ document.getElementById('barberoForm').addEventListener('submit', async (e) => {
       .select()
       .single();
 
-    // Crear horarios por defecto
     if (nuevoBarbero) {
+      // Crear horarios por defecto
       const horarios = [
         { dia_semana: 0, abre_minuto: null, cierra_minuto: null },
         { dia_semana: 1, abre_minuto: 540, cierra_minuto: 1140 },
@@ -267,8 +265,45 @@ document.getElementById('barberoForm').addEventListener('submit', async (e) => {
         { dia_semana: 6, abre_minuto: 540, cierra_minuto: 1020 },
       ].map(h => ({ ...h, negocio_id: negocio.id, barbero_id: nuevoBarbero.id }));
       await supabaseClient.from('horarios').insert(horarios);
+
+      // Copiar servicios del primer barbero (o crear default si no hay)
+      let serviciosBase = [];
+
+      if (barberos.length > 0) {
+        const { data: serviciosExistentes } = await supabaseClient
+          .from('servicios')
+          .select('nombre, precio, duracion_min, orden')
+          .eq('negocio_id', negocio.id)
+          .eq('barbero_id', barberos[0].id)
+          .eq('activo', true)
+          .order('orden', { ascending: true });
+
+        serviciosBase = serviciosExistentes || [];
+      }
+
+      if (serviciosBase.length === 0) {
+        serviciosBase = [
+          { nombre: 'Corte clásico',       precio: 25000, duracion_min: 30, orden: 1 },
+          { nombre: 'Arreglo de barba',    precio: 18000, duracion_min: 20, orden: 2 },
+          { nombre: 'Combo corte + barba', precio: 38000, duracion_min: 50, orden: 3 },
+          { nombre: 'Afeitado clásico',    precio: 22000, duracion_min: 25, orden: 4 },
+          { nombre: 'Corte niño',          precio: 18000, duracion_min: 25, orden: 5 },
+        ];
+      }
+
+      const serviciosParaCrear = serviciosBase.map(s => ({
+        nombre: s.nombre,
+        precio: s.precio,
+        duracion_min: s.duracion_min,
+        orden: s.orden,
+        negocio_id: negocio.id,
+        barbero_id: nuevoBarbero.id,
+        activo: true,
+      }));
+
+      await supabaseClient.from('servicios').insert(serviciosParaCrear);
     }
-    showToast('Barbero creado');
+    showToast('Barbero creado con sus servicios');
   }
   document.getElementById('barberoModal').style.display = 'none';
   loadBarberos();
@@ -296,7 +331,6 @@ function renderCitas() {
   const list = document.getElementById('citasList');
   const hoy = todayStr();
 
-  // Contadores
   const counts = {
     todas: citas.length,
     hoy: citas.filter(c => c.fecha === hoy).length,
@@ -311,7 +345,6 @@ function renderCitas() {
   });
   document.getElementById('citasCount').textContent = counts.confirmada;
 
-  // Filtrar
   let filtradas = citas;
   if (currentFilter === 'hoy') filtradas = citas.filter(c => c.fecha === hoy);
   else if (currentFilter !== 'todas') filtradas = citas.filter(c => c.estado === currentFilter);
@@ -372,7 +405,6 @@ async function updateEstadoCita(id, estado) {
   loadCitas();
 }
 
-// Filtros
 document.getElementById('citasFilterBar').addEventListener('click', (e) => {
   if (!e.target.classList.contains('filter-chip')) return;
   document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
