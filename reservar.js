@@ -35,21 +35,12 @@ async function init() {
   const params = new URLSearchParams(window.location.search);
   const subdominio = params.get('b');
 
-  if (!subdominio) {
-    showNotFound();
-    return;
-  }
+  if (!subdominio) { showNotFound(); return; }
 
   const { data: negocioData, error } = await supabaseClient
-    .from('negocios')
-    .select('*')
-    .eq('subdominio', subdominio)
-    .maybeSingle();
+    .from('negocios').select('*').eq('subdominio', subdominio).maybeSingle();
 
-  if (error || !negocioData) {
-    showNotFound();
-    return;
-  }
+  if (error || !negocioData) { showNotFound(); return; }
 
   negocio = negocioData;
   document.title = `Agendar cita — ${negocio.nombre}`;
@@ -60,6 +51,13 @@ async function init() {
     negocio.descripcion || 'Reserva tu cita en pocos clics.';
   document.getElementById('successNombreNegocio').textContent = negocio.nombre;
 
+  // Mostrar logo si existe
+  if (negocio.logo_url) {
+    const heroLogo = document.getElementById('heroLogo');
+    heroLogo.src = negocio.logo_url;
+    heroLogo.style.display = 'block';
+  }
+
   document.getElementById('infoDireccion').textContent =
     negocio.direccion || 'Sin dirección registrada';
   document.getElementById('infoCiudad').textContent = negocio.ciudad || '';
@@ -69,10 +67,8 @@ async function init() {
   }
 
   const { data: barberosData } = await supabaseClient
-    .from('barberos')
-    .select('*')
-    .eq('negocio_id', negocio.id)
-    .eq('activo', true)
+    .from('barberos').select('*')
+    .eq('negocio_id', negocio.id).eq('activo', true)
     .order('orden', { ascending: true });
 
   barberos = barberosData || [];
@@ -113,22 +109,14 @@ async function selectBarbero(b) {
   selectedServicio = null;
   selectedDate = null;
   selectedTime = null;
-
   renderBarberos();
 
   const [serviciosRes, horariosRes] = await Promise.all([
-    supabaseClient
-      .from('servicios')
-      .select('*')
-      .eq('negocio_id', negocio.id)
-      .eq('barbero_id', b.id)
-      .eq('activo', true)
+    supabaseClient.from('servicios').select('*')
+      .eq('negocio_id', negocio.id).eq('barbero_id', b.id).eq('activo', true)
       .order('orden', { ascending: true }),
-    supabaseClient
-      .from('horarios')
-      .select('*')
-      .eq('negocio_id', negocio.id)
-      .eq('barbero_id', b.id),
+    supabaseClient.from('horarios').select('*')
+      .eq('negocio_id', negocio.id).eq('barbero_id', b.id),
   ]);
 
   servicios = serviciosRes.data || [];
@@ -143,14 +131,8 @@ async function selectBarbero(b) {
 
 function renderServicios() {
   const grid = document.getElementById('serviciosGrid');
-  if (!selectedBarbero) {
-    grid.innerHTML = '<p class="hint">Selecciona primero un barbero.</p>';
-    return;
-  }
-  if (!servicios.length) {
-    grid.innerHTML = '<p class="hint">Este barbero no tiene servicios disponibles.</p>';
-    return;
-  }
+  if (!selectedBarbero) { grid.innerHTML = '<p class="hint">Selecciona primero un barbero.</p>'; return; }
+  if (!servicios.length) { grid.innerHTML = '<p class="hint">Este barbero no tiene servicios disponibles.</p>'; return; }
   grid.innerHTML = '';
   servicios.forEach(s => {
     const btn = document.createElement('button');
@@ -176,10 +158,7 @@ function renderServicios() {
 
 function renderFechas() {
   const scroll = document.getElementById('fechasScroll');
-  if (!selectedBarbero) {
-    scroll.innerHTML = '<p class="hint">Selecciona primero un barbero.</p>';
-    return;
-  }
+  if (!selectedBarbero) { scroll.innerHTML = '<p class="hint">Selecciona primero un barbero.</p>'; return; }
 
   scroll.innerHTML = '';
   const today = new Date();
@@ -193,7 +172,6 @@ function renderFechas() {
     d.setDate(d.getDate() + i);
     const dow = d.getDay();
     const hDia = horariosPorDia[dow];
-
     if (!hDia || hDia.abre_minuto === null) continue;
 
     const btn = document.createElement('button');
@@ -213,33 +191,23 @@ function renderFechas() {
     });
     scroll.appendChild(btn);
   }
-
-  if (!scroll.children.length) {
-    scroll.innerHTML = '<p class="hint">Este barbero no tiene días disponibles.</p>';
-  }
+  if (!scroll.children.length) scroll.innerHTML = '<p class="hint">Este barbero no tiene días disponibles.</p>';
 }
 
 async function renderHoras() {
   const grid = document.getElementById('horasGrid');
-
   if (!selectedServicio || !selectedDate) {
     grid.innerHTML = '<p class="hint">Elige un servicio y una fecha para ver los horarios.</p>';
     return;
   }
-
   const dow = selectedDate.getDay();
   const hDia = horarios.find(h => h.dia_semana === dow);
-
-  if (!hDia || hDia.abre_minuto === null) {
-    grid.innerHTML = '<p class="hint">Cerrado ese día.</p>';
-    return;
-  }
+  if (!hDia || hDia.abre_minuto === null) { grid.innerHTML = '<p class="hint">Cerrado ese día.</p>'; return; }
 
   grid.innerHTML = '<p class="hint">Cargando horarios...</p>';
 
   const { data: citasData } = await supabaseClient
-    .from('citas')
-    .select('hora_inicio, duracion')
+    .from('citas').select('hora_inicio, duracion')
     .eq('barbero_id', selectedBarbero.id)
     .eq('fecha', dateKey(selectedDate))
     .eq('estado', 'confirmada');
@@ -249,7 +217,6 @@ async function renderHoras() {
 
   grid.innerHTML = '';
   let anySlot = false;
-
   const isToday = dateKey(selectedDate) === dateKey(new Date());
   const now = new Date();
   const nowMinutes = now.getHours() * 60 + now.getMinutes();
@@ -271,9 +238,7 @@ async function renderHoras() {
     }
   }
 
-  if (!anySlot) {
-    grid.innerHTML = '<p class="hint">No hay horarios disponibles.</p>';
-  }
+  if (!anySlot) grid.innerHTML = '<p class="hint">No hay horarios disponibles.</p>';
 }
 
 function crearBotonHora(t, duration, citas, isToday, nowMinutes) {
@@ -300,10 +265,7 @@ function crearBotonHora(t, duration, citas, isToday, nowMinutes) {
 
 function renderHorarioLista() {
   const list = document.getElementById('horarioLista');
-  if (!horarios.length) {
-    list.innerHTML = '<li>Sin horario configurado</li>';
-    return;
-  }
+  if (!horarios.length) { list.innerHTML = '<li>Sin horario configurado</li>'; return; }
   const orden = [1, 2, 3, 4, 5, 6, 0];
   list.innerHTML = '';
   orden.forEach(dow => {
@@ -344,8 +306,7 @@ function updateSummary() {
 document.getElementById('reservaForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const msg = document.getElementById('formMsg');
-  msg.className = 'form-msg';
-  msg.textContent = '';
+  msg.className = 'form-msg'; msg.textContent = '';
 
   if (!selectedBarbero || !selectedServicio || !selectedDate || selectedTime === null) {
     msg.textContent = 'Por favor completa todos los pasos.';
@@ -368,8 +329,7 @@ document.getElementById('reservaForm').addEventListener('submit', async (e) => {
   msg.className = 'form-msg info';
 
   const { data: citasData } = await supabaseClient
-    .from('citas')
-    .select('hora_inicio, duracion')
+    .from('citas').select('hora_inicio, duracion')
     .eq('barbero_id', selectedBarbero.id)
     .eq('fecha', dateKey(selectedDate))
     .eq('estado', 'confirmada');
@@ -425,26 +385,11 @@ function showSuccess(name) {
 
   document.getElementById('successTitulo').textContent = `¡Listo ${name}, tu cita está confirmada!`;
   document.getElementById('successDetail').innerHTML = `
-    <div class="success-detail-row">
-      <span>Barbero</span>
-      <span>${selectedBarbero.nombre}</span>
-    </div>
-    <div class="success-detail-row">
-      <span>Servicio</span>
-      <span>${selectedServicio.nombre}</span>
-    </div>
-    <div class="success-detail-row">
-      <span>Fecha</span>
-      <span>${fechaLabel}</span>
-    </div>
-    <div class="success-detail-row">
-      <span>Hora</span>
-      <span>${minutesToLabel(selectedTime)}</span>
-    </div>
-    <div class="success-detail-row">
-      <span>Precio</span>
-      <span>${formatCOP(selectedServicio.precio)}</span>
-    </div>
+    <div class="success-detail-row"><span>Barbero</span><span>${selectedBarbero.nombre}</span></div>
+    <div class="success-detail-row"><span>Servicio</span><span>${selectedServicio.nombre}</span></div>
+    <div class="success-detail-row"><span>Fecha</span><span>${fechaLabel}</span></div>
+    <div class="success-detail-row"><span>Hora</span><span>${minutesToLabel(selectedTime)}</span></div>
+    <div class="success-detail-row"><span>Precio</span><span>${formatCOP(selectedServicio.precio)}</span></div>
   `;
 
   window.scrollTo({ top: 0, behavior: 'smooth' });
