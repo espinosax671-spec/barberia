@@ -1,3 +1,25 @@
+// ---------- Toggle mostrar/ocultar contraseña ----------
+document.querySelectorAll('.password-toggle').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const targetId = btn.dataset.target;
+    const input = document.getElementById(targetId);
+    const eyeOpen = btn.querySelector('.eye-open');
+    const eyeClosed = btn.querySelector('.eye-closed');
+
+    if (input.type === 'password') {
+      input.type = 'text';
+      eyeOpen.style.display = 'none';
+      eyeClosed.style.display = 'block';
+      btn.setAttribute('aria-label', 'Ocultar contraseña');
+    } else {
+      input.type = 'password';
+      eyeOpen.style.display = 'block';
+      eyeClosed.style.display = 'none';
+      btn.setAttribute('aria-label', 'Mostrar contraseña');
+    }
+  });
+});
+
 // ---------- Tabs ----------
 document.querySelectorAll('.auth-tab').forEach(tab => {
   tab.addEventListener('click', () => {
@@ -55,7 +77,6 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     return;
   }
 
-  // Verificar que tenga negocio
   const { data: negocio } = await supabaseClient
     .from('negocios')
     .select('id')
@@ -63,7 +84,6 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     .maybeSingle();
 
   if (!negocio) {
-    // Recién se registró, ir a activar
     window.location.href = 'confirmar.html';
     return;
   }
@@ -90,7 +110,6 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
   const password   = document.getElementById('regPassword').value;
   const password2  = document.getElementById('regPassword2').value;
 
-  // Validaciones
   if (password !== password2) {
     msg.textContent = 'Las contraseñas no coinciden.';
     msg.className = 'form-msg error';
@@ -112,7 +131,6 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
   msg.textContent = 'Creando tu cuenta...';
   msg.className = 'form-msg info';
 
-  // 1. Verificar subdominio disponible
   const { data: existente } = await supabaseClient
     .from('negocios')
     .select('id')
@@ -126,7 +144,6 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
     return;
   }
 
-  // 2. Crear usuario en Auth
   const { data: authData, error: authError } = await supabaseClient.auth.signUp({
     email,
     password,
@@ -146,7 +163,6 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
     return;
   }
 
-  // 3. Como no requiere confirmación, va directo a activar la cuenta
   msg.textContent = '¡Cuenta creada! Activando tu barbería...';
   msg.className = 'form-msg ok';
 
