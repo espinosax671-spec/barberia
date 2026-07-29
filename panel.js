@@ -5,7 +5,6 @@ let currentBarberoServicios = null;
 let currentBarberoHorarios = null;
 let currentFilter = 'todas';
 
-// ---------- Utilidades ----------
 function minutesToLabel(mins) {
   if (mins === null || mins === undefined) return '';
   const h24 = Math.floor(mins / 60);
@@ -36,7 +35,16 @@ function todayStr() {
 
 const DIAS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 
-// ---------- Toast ----------
+const HORARIOS_DEFAULT = [
+  { dia_semana: 0, abre_minuto: null, cierra_minuto: null, abre_minuto_tarde: null, cierra_minuto_tarde: null },
+  { dia_semana: 1, abre_minuto: 480, cierra_minuto: 720, abre_minuto_tarde: 840, cierra_minuto_tarde: 1140 },
+  { dia_semana: 2, abre_minuto: 480, cierra_minuto: 720, abre_minuto_tarde: 840, cierra_minuto_tarde: 1140 },
+  { dia_semana: 3, abre_minuto: 480, cierra_minuto: 720, abre_minuto_tarde: 840, cierra_minuto_tarde: 1140 },
+  { dia_semana: 4, abre_minuto: 480, cierra_minuto: 720, abre_minuto_tarde: 840, cierra_minuto_tarde: 1140 },
+  { dia_semana: 5, abre_minuto: 480, cierra_minuto: 720, abre_minuto_tarde: 840, cierra_minuto_tarde: 1140 },
+  { dia_semana: 6, abre_minuto: 480, cierra_minuto: 1020, abre_minuto_tarde: null, cierra_minuto_tarde: null },
+];
+
 function showToast(msg, type = 'success') {
   const toast = document.createElement('div');
   toast.className = 'toast ' + type;
@@ -45,7 +53,6 @@ function showToast(msg, type = 'success') {
   setTimeout(() => toast.remove(), 3000);
 }
 
-// ---------- Init ----------
 async function init() {
   const { data: sessionData } = await supabaseClient.auth.getSession();
   if (!sessionData.session) {
@@ -71,11 +78,9 @@ async function init() {
 
   negocio = negocioData;
 
-  // Header
   document.getElementById('negocioNombre').textContent = negocio.nombre;
   document.getElementById('userEmail').textContent = userEmail;
 
-  // Plan badge
   const badge = document.getElementById('planBadge');
   const estadoLabels = {
     trial: '🎁 Prueba gratis',
@@ -86,7 +91,6 @@ async function init() {
   badge.textContent = estadoLabels[negocio.estado_suscripcion] || negocio.estado_suscripcion;
   badge.className = 'plan-badge ' + negocio.estado_suscripcion;
 
-  // URL
   const tiendaUrl = `${APP_BASE_URL}/reservar.html?b=${negocio.subdominio}`;
   document.getElementById('tiendaUrl').textContent = tiendaUrl.replace(/^https?:\/\//, '');
   document.getElementById('viewShopBtn').href = tiendaUrl;
@@ -106,15 +110,12 @@ async function init() {
   loadNegocioForm();
   loadNotificaciones();
 
-  // Iniciar Realtime
   initRealtime();
 }
 
-// ---------- REALTIME (actualización instantánea) ----------
 function initRealtime() {
   console.log('🔴 Realtime iniciado para negocio:', negocio.id);
 
-  // Canal para citas
   supabaseClient
     .channel('citas-' + negocio.id)
     .on(
@@ -140,7 +141,6 @@ function initRealtime() {
       console.log('📡 Estado canal citas:', status);
     });
 
-  // Canal para notificaciones
   supabaseClient
     .channel('notif-' + negocio.id)
     .on(
@@ -159,37 +159,27 @@ function initRealtime() {
     .subscribe();
 }
 
-// Sonido de notificación
 function playNotifSound() {
   try {
-    // Beep corto usando Web Audio API
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
     const oscillator = ctx.createOscillator();
     const gainNode = ctx.createGain();
-
     oscillator.connect(gainNode);
     gainNode.connect(ctx.destination);
-
     oscillator.frequency.value = 800;
     oscillator.type = 'sine';
-
     gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
     gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
-
     oscillator.start(ctx.currentTime);
     oscillator.stop(ctx.currentTime + 0.3);
-  } catch (e) {
-    console.log('No se pudo reproducir sonido:', e);
-  }
+  } catch (e) {}
 }
 
-// ---------- Logout ----------
 document.getElementById('logoutBtn').addEventListener('click', async () => {
   await supabaseClient.auth.signOut();
   window.location.href = 'login.html';
 });
 
-// ---------- Tabs ----------
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -203,7 +193,6 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
   });
 });
 
-// ---------- BARBEROS ----------
 async function loadBarberos() {
   const { data, error } = await supabaseClient
     .from('barberos')
@@ -292,7 +281,6 @@ function renderBarberosSelectors() {
   });
 }
 
-// Modal barbero
 let editingBarberoId = null;
 
 document.getElementById('addBarberoBtn').addEventListener('click', () => openBarberoModal(null));
@@ -331,15 +319,11 @@ document.getElementById('barberoForm').addEventListener('submit', async (e) => {
       .single();
 
     if (nuevoBarbero) {
-      const horarios = [
-        { dia_semana: 0, abre_minuto: null, cierra_minuto: null },
-        { dia_semana: 1, abre_minuto: 540, cierra_minuto: 1140 },
-        { dia_semana: 2, abre_minuto: 540, cierra_minuto: 1140 },
-        { dia_semana: 3, abre_minuto: 540, cierra_minuto: 1140 },
-        { dia_semana: 4, abre_minuto: 540, cierra_minuto: 1140 },
-        { dia_semana: 5, abre_minuto: 540, cierra_minuto: 1140 },
-        { dia_semana: 6, abre_minuto: 540, cierra_minuto: 1020 },
-      ].map(h => ({ ...h, negocio_id: negocio.id, barbero_id: nuevoBarbero.id }));
+      const horarios = HORARIOS_DEFAULT.map(h => ({
+        ...h,
+        negocio_id: negocio.id,
+        barbero_id: nuevoBarbero.id,
+      }));
       await supabaseClient.from('horarios').insert(horarios);
 
       let serviciosBase = [];
@@ -384,7 +368,6 @@ document.getElementById('barberoForm').addEventListener('submit', async (e) => {
   loadBarberos();
 });
 
-// ---------- CITAS ----------
 async function loadCitas() {
   const { data, error } = await supabaseClient
     .from('citas')
@@ -488,7 +471,6 @@ document.getElementById('citasFilterBar').addEventListener('click', (e) => {
   renderCitas();
 });
 
-// ---------- SERVICIOS ----------
 async function loadServicios() {
   if (!currentBarberoServicios) return;
   renderBarberosSelectors();
@@ -574,7 +556,6 @@ document.getElementById('addServicioBtn').addEventListener('click', async () => 
   loadServicios();
 });
 
-// ---------- HORARIOS ----------
 async function loadHorarios() {
   if (!currentBarberoHorarios) return;
   renderBarberosSelectors();
@@ -595,29 +576,57 @@ async function loadHorarios() {
   list.innerHTML = '';
   data.forEach(h => {
     const abierto = h.abre_minuto !== null;
+    const tieneTarde = h.abre_minuto_tarde !== null;
     const row = document.createElement('div');
     row.className = 'horario-row';
     row.dataset.id = h.id;
     row.innerHTML = `
-      <span class="dia-nombre">${DIAS[h.dia_semana]}</span>
-      <label>
-        <input type="checkbox" class="abierto-check" ${abierto ? 'checked' : ''}>
-        Abierto
-      </label>
-      <label>Desde
-        <input type="time" class="abre-input" value="${minutesToHHMM(h.abre_minuto) || '09:00'}" ${abierto ? '' : 'disabled'}>
-      </label>
-      <label>Hasta
-        <input type="time" class="cierra-input" value="${minutesToHHMM(h.cierra_minuto) || '19:00'}" ${abierto ? '' : 'disabled'}>
-      </label>
+      <div class="horario-header">
+        <span class="dia-nombre">${DIAS[h.dia_semana]}</span>
+        <label>
+          <input type="checkbox" class="abierto-check" ${abierto ? 'checked' : ''}>
+          Abierto
+        </label>
+      </div>
+      <div class="horario-turnos" ${abierto ? '' : 'style="display:none;"'}>
+        <div class="turno">
+          <span class="turno-label">Mañana</span>
+          <label>Desde
+            <input type="time" class="abre-input" value="${minutesToHHMM(h.abre_minuto) || '08:00'}">
+          </label>
+          <label>Hasta
+            <input type="time" class="cierra-input" value="${minutesToHHMM(h.cierra_minuto) || '12:00'}">
+          </label>
+        </div>
+        <label class="turno-toggle">
+          <input type="checkbox" class="tarde-check" ${tieneTarde ? 'checked' : ''}>
+          Tiene turno tarde (con descanso al mediodía)
+        </label>
+        <div class="turno turno-tarde" ${tieneTarde ? '' : 'style="display:none;"'}>
+          <span class="turno-label">Tarde</span>
+          <label>Desde
+            <input type="time" class="abre-tarde-input" value="${minutesToHHMM(h.abre_minuto_tarde) || '14:00'}">
+          </label>
+          <label>Hasta
+            <input type="time" class="cierra-tarde-input" value="${minutesToHHMM(h.cierra_minuto_tarde) || '19:00'}">
+          </label>
+        </div>
+      </div>
     `;
+
     const check = row.querySelector('.abierto-check');
-    const abreInput = row.querySelector('.abre-input');
-    const cierraInput = row.querySelector('.cierra-input');
+    const turnos = row.querySelector('.horario-turnos');
+    const tardeCheck = row.querySelector('.tarde-check');
+    const turnoTarde = row.querySelector('.turno-tarde');
+
     check.addEventListener('change', () => {
-      abreInput.disabled = !check.checked;
-      cierraInput.disabled = !check.checked;
+      turnos.style.display = check.checked ? 'block' : 'none';
     });
+
+    tardeCheck.addEventListener('change', () => {
+      turnoTarde.style.display = tardeCheck.checked ? 'flex' : 'none';
+    });
+
     list.appendChild(row);
   });
 }
@@ -627,12 +636,19 @@ document.getElementById('guardarHorariosBtn').addEventListener('click', async ()
   const actualizaciones = [];
   filas.forEach(row => {
     const abierto = row.querySelector('.abierto-check').checked;
+    const tieneTarde = row.querySelector('.tarde-check').checked;
+
     const abre = abierto ? hhmmToMinutes(row.querySelector('.abre-input').value) : null;
     const cierra = abierto ? hhmmToMinutes(row.querySelector('.cierra-input').value) : null;
+    const abreTarde = (abierto && tieneTarde) ? hhmmToMinutes(row.querySelector('.abre-tarde-input').value) : null;
+    const cierraTarde = (abierto && tieneTarde) ? hhmmToMinutes(row.querySelector('.cierra-tarde-input').value) : null;
+
     actualizaciones.push(
       supabaseClient.from('horarios').update({
         abre_minuto: abre,
-        cierra_minuto: cierra
+        cierra_minuto: cierra,
+        abre_minuto_tarde: abreTarde,
+        cierra_minuto_tarde: cierraTarde,
       }).eq('id', row.dataset.id)
     );
   });
@@ -642,7 +658,6 @@ document.getElementById('guardarHorariosBtn').addEventListener('click', async ()
   showToast(huboError ? 'Error al guardar' : 'Horarios actualizados', huboError ? 'error' : 'success');
 });
 
-// ---------- DISEÑO / NEGOCIO ----------
 function loadNegocioForm() {
   document.getElementById('campoNombre').value = negocio.nombre || '';
   document.getElementById('campoDescripcion').value = negocio.descripcion || '';
@@ -672,7 +687,6 @@ document.getElementById('negocioForm').addEventListener('submit', async (e) => {
   showToast('Datos actualizados');
 });
 
-// ---------- NOTIFICACIONES ----------
 async function loadNotificaciones() {
   const { data } = await supabaseClient
     .from('notificaciones')
@@ -749,11 +763,9 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// Backup por si Realtime falla
 setInterval(() => {
   loadNotificaciones();
   loadCitas();
 }, 60000);
 
-// Arrancar
 init();
