@@ -14,21 +14,23 @@
 
 .auth-brand {
   text-align: center;
-  margin-bottom: 32px;
+  margin-bottom: 24px;
 }
 .auth-brand a {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  font-family: var(--font-display);
-  font-size: 1.3rem;
-  letter-spacing: 0.1em;
-  color: var(--navy);
+  display: inline-block;
 }
+.brand-logo-img {
+  width: 200px;
+  height: auto;
+  max-height: 200px;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto;
+}
+
+/* Ocultar por si acaso queda el viejo SVG */
 .auth-brand-mark {
-  width: 32px;
-  height: 32px;
-  color: var(--red);
+  display: none;
 }
 
 .auth-card {
@@ -196,4 +198,5 @@
 @media (max-width: 540px) {
   .form-row-2 { grid-template-columns: 1fr; }
   .auth-card { padding: 32px 24px; }
+  .brand-logo-img { width: 160px; }
 }
