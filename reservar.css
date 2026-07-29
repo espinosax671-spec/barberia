@@ -4,7 +4,6 @@
   font-family: var(--font-body);
 }
 
-/* ---------- Hero ---------- */
 .reservar-hero {
   background: var(--navy);
   color: var(--white);
@@ -54,7 +53,6 @@
   margin: 0 auto;
 }
 
-/* ---------- Sección wrapper ---------- */
 .reservar-main {
   max-width: 900px;
   margin: -40px auto 0;
@@ -95,7 +93,6 @@
   font-weight: 600;
 }
 
-/* ---------- Barberos ---------- */
 .barberos-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -141,7 +138,6 @@
   font-size: 0.95rem;
 }
 
-/* ---------- Servicios ---------- */
 .servicios-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
@@ -187,7 +183,6 @@
   letter-spacing: 0.05em;
 }
 
-/* ---------- Fechas ---------- */
 .fechas-scroll {
   display: flex;
   gap: 10px;
@@ -227,7 +222,6 @@
 }
 .fecha-option.selected .dnum { color: var(--red); }
 
-/* ---------- Horas ---------- */
 .horas-grid {
   display: flex;
   flex-wrap: wrap;
@@ -257,7 +251,28 @@
   text-decoration: line-through;
 }
 
-/* ---------- Datos cliente ---------- */
+.turno-separator {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 12px 0 4px;
+}
+.turno-separator::before,
+.turno-separator::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+.turno-separator span {
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--gray-500);
+}
+
 .datos-form { display: flex; flex-direction: column; gap: 16px; }
 .datos-form .form-row {
   display: grid;
@@ -276,7 +291,6 @@
 }
 .booking-summary strong { display: block; margin-bottom: 4px; }
 
-/* ---------- Éxito ---------- */
 .success-view {
   text-align: center;
   padding: 40px 20px;
@@ -330,7 +344,6 @@
   font-weight: 500;
 }
 
-/* ---------- Info negocio ---------- */
 .info-negocio {
   background: var(--off-white);
   border-top: 1px solid var(--line);
@@ -382,7 +395,6 @@
 .horario-lista li span:last-child { color: var(--gray-500); }
 .horario-lista li.cerrado span:last-child { color: var(--red); }
 
-/* ---------- Footer ---------- */
 .reservar-footer {
   background: var(--navy);
   color: #cdd6ea;
@@ -392,7 +404,6 @@
 }
 .reservar-footer a { color: var(--white); text-decoration: underline; }
 
-/* ---------- No encontrado ---------- */
 .not-found-view {
   min-height: 100vh;
   display: flex;
@@ -412,7 +423,6 @@
   margin: 0 auto 20px;
 }
 
-/* ---------- Loading ---------- */
 .loading-view {
   min-height: 100vh;
   display: flex;
