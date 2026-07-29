@@ -105,6 +105,82 @@ async function init() {
   await loadCitas();
   loadNegocioForm();
   loadNotificaciones();
+
+  // Iniciar Realtime
+  initRealtime();
+}
+
+// ---------- REALTIME (actualización instantánea) ----------
+function initRealtime() {
+  console.log('🔴 Realtime iniciado para negocio:', negocio.id);
+
+  // Canal para citas
+  supabaseClient
+    .channel('citas-' + negocio.id)
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'citas',
+        filter: `negocio_id=eq.${negocio.id}`,
+      },
+      (payload) => {
+        console.log('📥 Cambio en citas:', payload.eventType);
+        loadCitas();
+
+        if (payload.eventType === 'INSERT') {
+          const cita = payload.new;
+          showToast(`🔔 Nueva cita: ${cita.nombre_cliente}`);
+          playNotifSound();
+        }
+      }
+    )
+    .subscribe((status) => {
+      console.log('📡 Estado canal citas:', status);
+    });
+
+  // Canal para notificaciones
+  supabaseClient
+    .channel('notif-' + negocio.id)
+    .on(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'notificaciones',
+        filter: `negocio_id=eq.${negocio.id}`,
+      },
+      () => {
+        console.log('🔔 Nueva notificación');
+        loadNotificaciones();
+      }
+    )
+    .subscribe();
+}
+
+// Sonido de notificación
+function playNotifSound() {
+  try {
+    // Beep corto usando Web Audio API
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(ctx.destination);
+
+    oscillator.frequency.value = 800;
+    oscillator.type = 'sine';
+
+    gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+
+    oscillator.start(ctx.currentTime);
+    oscillator.stop(ctx.currentTime + 0.3);
+  } catch (e) {
+    console.log('No se pudo reproducir sonido:', e);
+  }
 }
 
 // ---------- Logout ----------
@@ -255,7 +331,6 @@ document.getElementById('barberoForm').addEventListener('submit', async (e) => {
       .single();
 
     if (nuevoBarbero) {
-      // Crear horarios por defecto
       const horarios = [
         { dia_semana: 0, abre_minuto: null, cierra_minuto: null },
         { dia_semana: 1, abre_minuto: 540, cierra_minuto: 1140 },
@@ -267,7 +342,6 @@ document.getElementById('barberoForm').addEventListener('submit', async (e) => {
       ].map(h => ({ ...h, negocio_id: negocio.id, barbero_id: nuevoBarbero.id }));
       await supabaseClient.from('horarios').insert(horarios);
 
-      // Copiar servicios del primer barbero (o crear default si no hay)
       let serviciosBase = [];
 
       if (barberos.length > 0) {
@@ -663,7 +737,6 @@ document.getElementById('notifBtn').addEventListener('click', (e) => {
   const dd = document.getElementById('notifDropdown');
   const wasHidden = dd.style.display === 'none';
   dd.style.display = wasHidden ? 'block' : 'none';
-  // Al abrir la campana, recargar citas y notificaciones
   if (wasHidden) {
     loadCitas();
     loadNotificaciones();
@@ -676,11 +749,11 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// Auto-refresh cada 30 segundos (notificaciones + citas)
+// Backup por si Realtime falla
 setInterval(() => {
   loadNotificaciones();
   loadCitas();
-}, 30000);
+}, 60000);
 
 // Arrancar
 init();
