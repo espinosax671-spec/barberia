@@ -3,7 +3,6 @@
   min-height: 100vh;
 }
 
-/* ---------- Loading ---------- */
 .panel-loading {
   min-height: 100vh;
   display: flex;
@@ -13,7 +12,6 @@
   gap: 12px;
 }
 
-/* ---------- Header ---------- */
 .panel-header {
   background: var(--white);
   border-bottom: 1px solid var(--line);
@@ -139,7 +137,6 @@
   border-color: var(--red);
 }
 
-/* ---------- URL Bar ---------- */
 .url-bar {
   background: linear-gradient(90deg, #eef3ff, #e3ebfd);
   border-bottom: 1px solid var(--line);
@@ -212,7 +209,6 @@
 }
 .url-btn-share:hover { background: #1fb556; border-color: #1fb556; }
 
-/* ---------- Tabs ---------- */
 .panel-tabs {
   background: var(--white);
   border-bottom: 1px solid var(--line);
@@ -259,7 +255,6 @@
   color: var(--white);
 }
 
-/* ---------- Main ---------- */
 .panel-main {
   padding: 40px 32px;
   max-width: 1400px;
@@ -283,7 +278,6 @@
   color: var(--navy);
 }
 
-/* ---------- Filtros ---------- */
 .filter-bar {
   display: flex;
   gap: 8px;
@@ -314,7 +308,6 @@
   font-weight: 500;
 }
 
-/* ---------- Cards de citas ---------- */
 .citas-list {
   display: flex;
   flex-direction: column;
@@ -381,7 +374,6 @@
 .cita-actions .complete-btn:hover { border-color: var(--success); color: var(--success); }
 .cita-actions .cancel-btn:hover { border-color: var(--red); color: var(--red); }
 
-/* ---------- Empty state ---------- */
 .empty-state {
   background: var(--white);
   border: 1px dashed var(--line);
@@ -411,7 +403,6 @@
   margin: 0 auto;
 }
 
-/* ---------- Selector barbero (para horarios/servicios) ---------- */
 .barbero-selector {
   display: flex;
   gap: 8px;
@@ -438,7 +429,6 @@
   border-color: var(--blue);
 }
 
-/* ---------- Servicios ---------- */
 .servicios-list {
   display: flex;
   flex-direction: column;
@@ -495,7 +485,6 @@
   .row-actions { justify-content: flex-end; }
 }
 
-/* ---------- Horarios ---------- */
 .horarios-list {
   display: flex;
   flex-direction: column;
@@ -508,15 +497,52 @@
   border-radius: var(--radius-lg);
   padding: 16px 20px;
   display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+}
+.horario-header {
+  display: flex;
   align-items: center;
-  gap: 18px;
-  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 16px;
 }
 .dia-nombre {
   min-width: 100px;
   font-weight: 600;
   color: var(--navy);
   font-size: 0.95rem;
+}
+.horario-turnos {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--line);
+}
+.turno {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.turno-label {
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--blue);
+  min-width: 70px;
+}
+.turno-toggle {
+  font-size: 0.85rem;
+  color: var(--gray-500);
+  padding-top: 12px;
+  border-top: 1px dashed var(--line);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 .horario-row label {
   display: flex;
@@ -533,7 +559,6 @@
 }
 .horario-row input[type="time"]:disabled { opacity: 0.4; }
 
-/* ---------- Barberos (cards) ---------- */
 .barberos-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -593,7 +618,6 @@
 .barbero-card-actions button:hover { border-color: var(--navy); color: var(--navy); }
 .barbero-card.inactivo { opacity: 0.5; }
 
-/* ---------- Diseño (form negocio) ---------- */
 .negocio-form {
   background: var(--white);
   border: 1px solid var(--line);
@@ -602,7 +626,6 @@
   max-width: 640px;
 }
 
-/* ---------- Modal ---------- */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -635,7 +658,6 @@
   margin-top: 20px;
 }
 
-/* ---------- Toast ---------- */
 .toast {
   position: fixed;
   bottom: 24px;
@@ -655,8 +677,11 @@
   from { opacity: 0; transform: translateY(20px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
 
-/* ---------- Notificaciones dropdown ---------- */
 .notif-dropdown {
   position: absolute;
   top: 100%;
