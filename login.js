@@ -21,7 +21,6 @@ subdomInput.addEventListener('input', () => {
 (async () => {
   const { data } = await supabaseClient.auth.getSession();
   if (data.session) {
-    // Verificar si ya tiene negocio
     const { data: negocio } = await supabaseClient
       .from('negocios')
       .select('id')
@@ -31,7 +30,6 @@ subdomInput.addEventListener('input', () => {
     if (negocio) {
       window.location.href = 'panel.html';
     } else {
-      // Tiene sesión pero aún no ha creado el negocio (viene del email)
       window.location.href = 'confirmar.html';
     }
   }
@@ -52,11 +50,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
   });
 
   if (error) {
-    if (error.message.includes('Email not confirmed')) {
-      msg.textContent = 'Debes confirmar tu correo antes de entrar. Revisa tu bandeja.';
-    } else {
-      msg.textContent = 'Correo o contraseña incorrectos.';
-    }
+    msg.textContent = 'Correo o contraseña incorrectos.';
     msg.className = 'form-msg error';
     return;
   }
@@ -69,7 +63,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     .maybeSingle();
 
   if (!negocio) {
-    // Recién confirmó su correo pero no ha activado el negocio
+    // Recién se registró, ir a activar
     window.location.href = 'confirmar.html';
     return;
   }
@@ -132,12 +126,11 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
     return;
   }
 
-  // 2. Crear usuario en Auth (con datos guardados en metadata para usar después)
+  // 2. Crear usuario en Auth
   const { data: authData, error: authError } = await supabaseClient.auth.signUp({
     email,
     password,
     options: {
-      emailRedirectTo: `${APP_BASE_URL}/confirmar.html`,
       data: {
         nombre_negocio: nombre,
         subdominio: subdominio,
@@ -153,14 +146,11 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
     return;
   }
 
-  // 3. Mostrar vista "revisa tu correo"
-  document.getElementById('mainView').style.display = 'none';
-  document.getElementById('checkEmailView').style.display = 'block';
-  document.getElementById('confirmEmailAddr').textContent = email;
-});
+  // 3. Como no requiere confirmación, va directo a activar la cuenta
+  msg.textContent = '¡Cuenta creada! Activando tu barbería...';
+  msg.className = 'form-msg ok';
 
-// Botón volver desde "revisa tu correo"
-document.getElementById('backToLoginBtn').addEventListener('click', () => {
-  document.getElementById('checkEmailView').style.display = 'none';
-  document.getElementById('mainView').style.display = 'block';
+  setTimeout(() => {
+    window.location.href = 'confirmar.html';
+  }, 800);
 });
