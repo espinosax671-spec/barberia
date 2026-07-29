@@ -12,13 +12,11 @@
 </head>
 <body class="reservar-body">
 
-<!-- Loading -->
 <div id="loadingView" class="loading-view">
   <div class="spinner"></div>
   <p class="hint">Cargando barbería…</p>
 </div>
 
-<!-- No encontrado -->
 <div id="notFoundView" class="not-found-view" style="display:none;">
   <div>
     <h1>Barbería no encontrada</h1>
@@ -26,23 +24,20 @@
   </div>
 </div>
 
-<!-- Vista principal -->
 <div id="mainView" style="display:none;">
 
-  <!-- Hero -->
   <section class="reservar-hero">
     <div class="reservar-hero-stripe"></div>
     <div class="reservar-hero-inner">
+      <img id="heroLogo" src="" alt="" style="display:none;">
       <p class="reservar-eyebrow" id="heroCiudad">Barbería</p>
       <h1 id="heroNombre">Cargando...</h1>
       <p id="heroDescripcion"></p>
     </div>
   </section>
 
-  <!-- Main reservación -->
   <main class="reservar-main">
 
-    <!-- Paso 1: Barbero -->
     <section class="step-card">
       <div class="step-label">
         <span class="step-number">1</span>
@@ -53,7 +48,6 @@
       </div>
     </section>
 
-    <!-- Paso 2: Servicio -->
     <section class="step-card">
       <div class="step-label">
         <span class="step-number">2</span>
@@ -64,7 +58,6 @@
       </div>
     </section>
 
-    <!-- Paso 3: Fecha -->
     <section class="step-card">
       <div class="step-label">
         <span class="step-number">3</span>
@@ -75,7 +68,6 @@
       </div>
     </section>
 
-    <!-- Paso 4: Hora -->
     <section class="step-card">
       <div class="step-label">
         <span class="step-number">4</span>
@@ -86,7 +78,6 @@
       </div>
     </section>
 
-    <!-- Paso 5: Datos -->
     <section class="step-card">
       <div class="step-label">
         <span class="step-number">5</span>
@@ -111,7 +102,6 @@
 
   </main>
 
-  <!-- Info negocio -->
   <section class="info-negocio">
     <div class="info-negocio-inner">
       <div class="info-block">
@@ -139,14 +129,12 @@
     </div>
   </section>
 
-  <!-- Footer -->
   <footer class="reservar-footer">
     <p>Powered by <a href="index.html">CitaBarber</a></p>
   </footer>
 
 </div>
 
-<!-- Vista éxito -->
 <div id="successView" style="display:none;">
   <section class="reservar-hero">
     <div class="reservar-hero-stripe"></div>
