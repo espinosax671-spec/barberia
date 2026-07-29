@@ -26,7 +26,6 @@
 
   <div class="auth-card">
 
-    <!-- Vista principal (login/registro) -->
     <div id="mainView">
       <div class="auth-tabs">
         <button class="auth-tab active" data-tab="ingresar">Iniciar sesión</button>
@@ -45,7 +44,19 @@
           </div>
           <div class="field">
             <label for="loginPassword">Contraseña</label>
-            <input type="password" id="loginPassword" required placeholder="••••••••">
+            <div class="password-wrap">
+              <input type="password" id="loginPassword" required placeholder="••••••••">
+              <button type="button" class="password-toggle" data-target="loginPassword" aria-label="Mostrar contraseña">
+                <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+                <svg class="eye-closed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+                  <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/>
+                  <line x1="1" y1="1" x2="23" y2="23"/>
+                </svg>
+              </button>
+            </div>
           </div>
           <button type="submit" class="btn btn-dark btn-block btn-lg">Entrar</button>
           <p class="form-msg" id="loginMsg"></p>
@@ -89,11 +100,35 @@
           <div class="form-row-2">
             <div class="field">
               <label for="regPassword">Contraseña</label>
-              <input type="password" id="regPassword" required minlength="6" placeholder="Mín. 6 caracteres">
+              <div class="password-wrap">
+                <input type="password" id="regPassword" required minlength="6" placeholder="Mín. 6 caracteres">
+                <button type="button" class="password-toggle" data-target="regPassword" aria-label="Mostrar contraseña">
+                  <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                  <svg class="eye-closed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+                    <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/>
+                    <line x1="1" y1="1" x2="23" y2="23"/>
+                  </svg>
+                </button>
+              </div>
             </div>
             <div class="field">
               <label for="regPassword2">Confirmar</label>
-              <input type="password" id="regPassword2" required placeholder="Repite tu contraseña">
+              <div class="password-wrap">
+                <input type="password" id="regPassword2" required placeholder="Repite tu contraseña">
+                <button type="button" class="password-toggle" data-target="regPassword2" aria-label="Mostrar contraseña">
+                  <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                  <svg class="eye-closed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+                    <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/>
+                    <line x1="1" y1="1" x2="23" y2="23"/>
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -103,7 +138,6 @@
       </div>
     </div>
 
-    <!-- Vista "revisa tu correo" -->
     <div id="checkEmailView" style="display:none;">
       <div class="check-email">
         <div class="check-email-icon">
@@ -115,7 +149,7 @@
         <h2>Revisa tu correo</h2>
         <p>Te enviamos un enlace de confirmación a:</p>
         <p><strong id="confirmEmailAddr"></strong></p>
-        <p class="mt-2">Haz clic en el enlace para activar tu cuenta y empezar tus 30 días gratis.</p>
+        <p class="mt-2">Haz clic en el enlace para activar tu cuenta.</p>
         <p class="mt-4">
           <button type="button" class="btn btn-ghost" id="backToLoginBtn">Volver</button>
         </p>
