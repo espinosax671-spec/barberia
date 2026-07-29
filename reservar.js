@@ -12,7 +12,6 @@ const DIAS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', '
 const DOW_LABELS = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'];
 const SLOT_STEP = 30;
 
-// ---------- Utilidades ----------
 function formatCOP(n) { return '$' + n.toLocaleString('es-CO'); }
 function minutesToLabel(mins) {
   const h24 = Math.floor(mins / 60);
@@ -32,7 +31,6 @@ function getInitials(name) {
   return name.split(' ').filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('');
 }
 
-// ---------- Init ----------
 async function init() {
   const params = new URLSearchParams(window.location.search);
   const subdominio = params.get('b');
@@ -90,7 +88,6 @@ function showNotFound() {
   document.getElementById('notFoundView').style.display = 'flex';
 }
 
-// ---------- BARBEROS ----------
 function renderBarberos() {
   const grid = document.getElementById('barberosGrid');
   if (!barberos.length) {
@@ -144,7 +141,6 @@ async function selectBarbero(b) {
   updateSummary();
 }
 
-// ---------- SERVICIOS ----------
 function renderServicios() {
   const grid = document.getElementById('serviciosGrid');
   if (!selectedBarbero) {
@@ -178,7 +174,6 @@ function renderServicios() {
   });
 }
 
-// ---------- FECHAS ----------
 function renderFechas() {
   const scroll = document.getElementById('fechasScroll');
   if (!selectedBarbero) {
@@ -224,7 +219,6 @@ function renderFechas() {
   }
 }
 
-// ---------- HORAS ----------
 async function renderHoras() {
   const grid = document.getElementById('horasGrid');
 
@@ -256,34 +250,25 @@ async function renderHoras() {
   grid.innerHTML = '';
   let anySlot = false;
 
+  const isToday = dateKey(selectedDate) === dateKey(new Date());
+  const now = new Date();
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+
   for (let t = hDia.abre_minuto; t + duration <= hDia.cierra_minuto; t += SLOT_STEP) {
     anySlot = true;
-    const taken = citas.some(c =>
-      t < c.hora_inicio + c.duracion && t + duration > c.hora_inicio
-    );
+    grid.appendChild(crearBotonHora(t, duration, citas, isToday, nowMinutes));
+  }
 
-    const isToday = dateKey(selectedDate) === dateKey(new Date());
-    let pasada = false;
-    if (isToday) {
-      const now = new Date();
-      const nowMinutes = now.getHours() * 60 + now.getMinutes();
-      pasada = t <= nowMinutes;
+  if (hDia.abre_minuto_tarde !== null && hDia.cierra_minuto_tarde !== null) {
+    const sep = document.createElement('div');
+    sep.className = 'turno-separator';
+    sep.innerHTML = '<span>Tarde</span>';
+    grid.appendChild(sep);
+
+    for (let t = hDia.abre_minuto_tarde; t + duration <= hDia.cierra_minuto_tarde; t += SLOT_STEP) {
+      anySlot = true;
+      grid.appendChild(crearBotonHora(t, duration, citas, isToday, nowMinutes));
     }
-
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'hora-option' + (selectedTime === t ? ' selected' : '');
-    btn.textContent = minutesToLabel(t);
-    btn.disabled = taken || pasada;
-
-    if (!taken && !pasada) {
-      btn.addEventListener('click', () => {
-        selectedTime = t;
-        renderHoras();
-        updateSummary();
-      });
-    }
-    grid.appendChild(btn);
   }
 
   if (!anySlot) {
@@ -291,7 +276,28 @@ async function renderHoras() {
   }
 }
 
-// ---------- HORARIO LISTA ----------
+function crearBotonHora(t, duration, citas, isToday, nowMinutes) {
+  const taken = citas.some(c =>
+    t < c.hora_inicio + c.duracion && t + duration > c.hora_inicio
+  );
+  const pasada = isToday && t <= nowMinutes;
+
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'hora-option' + (selectedTime === t ? ' selected' : '');
+  btn.textContent = minutesToLabel(t);
+  btn.disabled = taken || pasada;
+
+  if (!taken && !pasada) {
+    btn.addEventListener('click', () => {
+      selectedTime = t;
+      renderHoras();
+      updateSummary();
+    });
+  }
+  return btn;
+}
+
 function renderHorarioLista() {
   const list = document.getElementById('horarioLista');
   if (!horarios.length) {
@@ -308,13 +314,16 @@ function renderHorarioLista() {
       li.className = 'cerrado';
       li.innerHTML = `<span>${DIAS[dow]}</span><span>Cerrado</span>`;
     } else {
-      li.innerHTML = `<span>${DIAS[dow]}</span><span>${minutesToLabel(h.abre_minuto)} – ${minutesToLabel(h.cierra_minuto)}</span>`;
+      let horarioTxt = `${minutesToLabel(h.abre_minuto)} – ${minutesToLabel(h.cierra_minuto)}`;
+      if (h.abre_minuto_tarde !== null && h.cierra_minuto_tarde !== null) {
+        horarioTxt += ` · ${minutesToLabel(h.abre_minuto_tarde)} – ${minutesToLabel(h.cierra_minuto_tarde)}`;
+      }
+      li.innerHTML = `<span>${DIAS[dow]}</span><span>${horarioTxt}</span>`;
     }
     list.appendChild(li);
   });
 }
 
-// ---------- RESUMEN ----------
 function updateSummary() {
   const box = document.getElementById('bookingSummary');
   if (!selectedBarbero || !selectedServicio || !selectedDate || selectedTime === null) {
@@ -332,7 +341,6 @@ function updateSummary() {
   `;
 }
 
-// ---------- CONFIRMAR CITA ----------
 document.getElementById('reservaForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const msg = document.getElementById('formMsg');
