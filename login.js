@@ -1,4 +1,4 @@
-// ---------- Toggle mostrar/ocultar contraseña ----------
+// Toggle contraseña
 document.querySelectorAll('.password-toggle').forEach(btn => {
   btn.addEventListener('click', () => {
     const targetId = btn.dataset.target;
@@ -10,17 +10,15 @@ document.querySelectorAll('.password-toggle').forEach(btn => {
       input.type = 'text';
       eyeOpen.style.display = 'none';
       eyeClosed.style.display = 'block';
-      btn.setAttribute('aria-label', 'Ocultar contraseña');
     } else {
       input.type = 'password';
       eyeOpen.style.display = 'block';
       eyeClosed.style.display = 'none';
-      btn.setAttribute('aria-label', 'Mostrar contraseña');
     }
   });
 });
 
-// ---------- Tabs ----------
+// Tabs
 document.querySelectorAll('.auth-tab').forEach(tab => {
   tab.addEventListener('click', () => {
     document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
@@ -30,46 +28,62 @@ document.querySelectorAll('.auth-tab').forEach(tab => {
   });
 });
 
-// ---------- Preview URL en registro ----------
 const subdomInput = document.getElementById('regSubdominio');
-const urlPreview  = document.getElementById('urlPreview');
-
+const urlPreview = document.getElementById('urlPreview');
 subdomInput.addEventListener('input', () => {
   const val = subdomInput.value.trim().toLowerCase();
   urlPreview.textContent = val ? `/reservar?b=${val}` : '/reservar';
 });
 
-// ---------- Redirigir si ya tiene sesión ----------
+// Función para redirigir según tipo de usuario
+async function redirectByUserType(userId) {
+  // Verificar si es dueño
+  const { data: negocio } = await supabaseClient
+    .from('negocios')
+    .select('id')
+    .eq('dueno_id', userId)
+    .maybeSingle();
+
+  if (negocio) {
+    window.location.href = 'panel.html';
+    return;
+  }
+
+  // Verificar si es barbero
+  const { data: barbero } = await supabaseClient
+    .from('barberos')
+    .select('id')
+    .eq('auth_user_id', userId)
+    .maybeSingle();
+
+  if (barbero) {
+    window.location.href = 'mi-agenda.html';
+    return;
+  }
+
+  // No es dueño ni barbero, ir a activar
+  window.location.href = 'confirmar.html';
+}
+
+// Verificar sesión activa
 (async () => {
   const { data } = await supabaseClient.auth.getSession();
   if (data.session) {
-    const { data: negocio } = await supabaseClient
-      .from('negocios')
-      .select('id')
-      .eq('dueno_id', data.session.user.id)
-      .maybeSingle();
-
-    if (negocio) {
-      window.location.href = 'panel.html';
-    } else {
-      window.location.href = 'confirmar.html';
-    }
+    await redirectByUserType(data.session.user.id);
   }
 })();
 
-// ---------- LOGIN ----------
+// LOGIN
 document.getElementById('loginForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const msg = document.getElementById('loginMsg');
   msg.textContent = 'Verificando...';
   msg.className = 'form-msg info';
 
-  const email    = document.getElementById('loginEmail').value.trim();
+  const email = document.getElementById('loginEmail').value.trim();
   const password = document.getElementById('loginPassword').value;
 
-  const { data, error } = await supabaseClient.auth.signInWithPassword({
-    email, password,
-  });
+  const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
 
   if (error) {
     msg.textContent = 'Correo o contraseña incorrectos.';
@@ -77,38 +91,25 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     return;
   }
 
-  const { data: negocio } = await supabaseClient
-    .from('negocios')
-    .select('id')
-    .eq('dueno_id', data.user.id)
-    .maybeSingle();
-
-  if (!negocio) {
-    window.location.href = 'confirmar.html';
-    return;
-  }
-
-  msg.textContent = '¡Bienvenido! Cargando tu panel...';
+  msg.textContent = '¡Bienvenido! Cargando...';
   msg.className = 'form-msg ok';
 
-  setTimeout(() => {
-    window.location.href = 'panel.html';
-  }, 600);
+  setTimeout(() => redirectByUserType(data.user.id), 600);
 });
 
-// ---------- REGISTRO ----------
+// REGISTRO
 document.getElementById('registerForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const msg = document.getElementById('registerMsg');
   msg.textContent = '';
   msg.className = 'form-msg';
 
-  const nombre     = document.getElementById('regNombre').value.trim();
-  const email      = document.getElementById('regEmail').value.trim();
-  const telefono   = document.getElementById('regTelefono').value.trim();
+  const nombre = document.getElementById('regNombre').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const telefono = document.getElementById('regTelefono').value.trim();
   const subdominio = document.getElementById('regSubdominio').value.trim().toLowerCase();
-  const password   = document.getElementById('regPassword').value;
-  const password2  = document.getElementById('regPassword2').value;
+  const password = document.getElementById('regPassword').value;
+  const password2 = document.getElementById('regPassword2').value;
 
   if (password !== password2) {
     msg.textContent = 'Las contraseñas no coinciden.';
@@ -132,21 +133,17 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
   msg.className = 'form-msg info';
 
   const { data: existente } = await supabaseClient
-    .from('negocios')
-    .select('id')
-    .eq('subdominio', subdominio)
-    .maybeSingle();
+    .from('negocios').select('id').eq('subdominio', subdominio).maybeSingle();
 
   if (existente) {
-    msg.textContent = 'Esa URL ya está tomada. Prueba con otra.';
+    msg.textContent = 'Esa URL ya está tomada.';
     msg.className = 'form-msg error';
     submitBtn.disabled = false;
     return;
   }
 
   const { data: authData, error: authError } = await supabaseClient.auth.signUp({
-    email,
-    password,
+    email, password,
     options: {
       data: {
         nombre_negocio: nombre,
@@ -163,10 +160,7 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
     return;
   }
 
-  msg.textContent = '¡Cuenta creada! Activando tu barbería...';
+  msg.textContent = '¡Cuenta creada! Activando...';
   msg.className = 'form-msg ok';
-
-  setTimeout(() => {
-    window.location.href = 'confirmar.html';
-  }, 800);
+  setTimeout(() => { window.location.href = 'confirmar.html'; }, 800);
 });
