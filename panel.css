@@ -648,7 +648,6 @@
   max-width: 640px;
 }
 
-/* Logo Upload */
 .logo-upload-field {
   margin-bottom: 24px;
 }
@@ -813,7 +812,6 @@
   font-size: 0.88rem;
 }
 
-/* Credenciales barbero */
 .credenciales-box {
   background: var(--off-white);
   border: 1px solid var(--line);
@@ -877,11 +875,13 @@
 .modal-close-btn {
   background: none;
   border: none;
-  font-size: 1.5rem;
   color: var(--gray-500);
   cursor: pointer;
-  padding: 4px 10px;
+  padding: 8px;
   border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .modal-close-btn:hover {
   background: var(--off-white);
@@ -936,9 +936,36 @@
 .kpi-calendar { border-left: 4px solid var(--red); }
 .kpi-chart { border-left: 4px solid #d97706; }
 
-.kpi-icon {
-  font-size: 2rem;
+.kpi-icon-svg {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
+  background: var(--off-white);
+}
+.kpi-icon-svg svg {
+  width: 22px;
+  height: 22px;
+}
+
+.kpi-money .kpi-icon-svg {
+  background: #e8f5ec;
+  color: #157a3d;
+}
+.kpi-scissors .kpi-icon-svg {
+  background: var(--blue-soft);
+  color: var(--blue);
+}
+.kpi-calendar .kpi-icon-svg {
+  background: var(--red-soft);
+  color: var(--red);
+}
+.kpi-chart .kpi-icon-svg {
+  background: #fef3e0;
+  color: #d97706;
 }
 
 .kpi-info { flex: 1; min-width: 0; }
