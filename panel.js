@@ -87,15 +87,9 @@ async function init() {
     headerLogo.style.display = 'block';
   }
 
+  // Badge de suscripción oculto por ahora
   const badge = document.getElementById('planBadge');
-  const estadoLabels = {
-    trial: '🎁 Prueba gratis',
-    activa: '✓ Activa',
-    vencida: 'Pago vencido',
-    cancelada: 'Cancelada'
-  };
-  badge.textContent = estadoLabels[negocio.estado_suscripcion] || negocio.estado_suscripcion;
-  badge.className = 'plan-badge ' + negocio.estado_suscripcion;
+  badge.style.display = 'none';
 
   const tiendaUrl = `${APP_BASE_URL}/reservar.html?b=${negocio.subdominio}`;
   document.getElementById('tiendaUrl').textContent = tiendaUrl.replace(/^https?:\/\//, '');
@@ -144,7 +138,6 @@ function initRealtime() {
     )
     .subscribe();
 
-  // Realtime para foto de barberos (por si el barbero actualiza su foto)
   supabaseClient
     .channel('barberos-' + negocio.id)
     .on(
@@ -290,7 +283,6 @@ function openBarberoModal(barbero) {
   document.getElementById('modalBarberoEmail').value = barbero ? barbero.email || '' : '';
   document.getElementById('modalBarberoPass').value = '';
 
-  // Si es edición y ya tiene cuenta, ocultar campos de auth
   const authFields = document.getElementById('authFields');
   if (barbero && barbero.auth_user_id) {
     authFields.style.display = 'none';
@@ -317,16 +309,13 @@ document.getElementById('barberoForm').addEventListener('submit', async (e) => {
 
   try {
     if (editingBarberoId) {
-      // EDITAR barbero existente
       await supabaseClient.from('barberos').update({ nombre, telefono }).eq('id', editingBarberoId);
       showToast('Barbero actualizado');
       document.getElementById('barberoModal').style.display = 'none';
       loadBarberos();
     } else {
-      // CREAR barbero nuevo
       let authUserId = null;
 
-      // Si dio email y contraseña, crear cuenta auth
       if (email && password) {
         if (password.length < 6) {
           showToast('La contraseña debe tener al menos 6 caracteres', 'error');
@@ -334,10 +323,8 @@ document.getElementById('barberoForm').addEventListener('submit', async (e) => {
           return;
         }
 
-        // Guardar sesión actual del dueño
         const { data: currentSession } = await supabaseClient.auth.getSession();
 
-        // Crear cuenta del barbero
         const { data: authData, error: authError } = await supabaseClient.auth.signUp({
           email,
           password,
@@ -351,7 +338,6 @@ document.getElementById('barberoForm').addEventListener('submit', async (e) => {
 
         authUserId = authData.user.id;
 
-        // Restaurar sesión del dueño
         if (currentSession.session) {
           await supabaseClient.auth.setSession({
             access_token: currentSession.session.access_token,
@@ -360,7 +346,6 @@ document.getElementById('barberoForm').addEventListener('submit', async (e) => {
         }
       }
 
-      // Crear barbero en la tabla
       const { data: nuevoBarbero, error: barberoError } = await supabaseClient
         .from('barberos')
         .insert({
@@ -380,13 +365,11 @@ document.getElementById('barberoForm').addEventListener('submit', async (e) => {
         return;
       }
 
-      // Crear horarios por defecto
       const horarios = HORARIOS_DEFAULT.map(h => ({
         ...h, negocio_id: negocio.id, barbero_id: nuevoBarbero.id,
       }));
       await supabaseClient.from('horarios').insert(horarios);
 
-      // Copiar servicios del primer barbero
       let serviciosBase = [];
       if (barberos.length > 0) {
         const { data: serviciosExistentes } = await supabaseClient
@@ -417,7 +400,6 @@ document.getElementById('barberoForm').addEventListener('submit', async (e) => {
 
       document.getElementById('barberoModal').style.display = 'none';
 
-      // Si creamos cuenta, mostrar credenciales
       if (email && password) {
         mostrarCredenciales(nombre, email, password);
       } else {
@@ -740,7 +722,6 @@ document.getElementById('negocioForm').addEventListener('submit', async (e) => {
   showToast('Datos actualizados');
 });
 
-// LOGO UPLOAD
 document.getElementById('uploadLogoBtn').addEventListener('click', () => {
   document.getElementById('logoInput').click();
 });
