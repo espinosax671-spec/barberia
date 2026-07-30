@@ -20,9 +20,9 @@
   display: inline-block;
 }
 .brand-logo-img {
-  width: 200px;
+  width: 320px;
   height: auto;
-  max-height: 200px;
+  max-height: 320px;
   object-fit: contain;
   display: block;
   margin: 0 auto;
@@ -194,9 +194,8 @@
   width: 20px;
   height: 20px;
 }
-
 @media (max-width: 540px) {
   .form-row-2 { grid-template-columns: 1fr; }
   .auth-card { padding: 32px 24px; }
-  .brand-logo-img { width: 160px; }
+  .brand-logo-img { width: 240px; }
 }
