@@ -36,7 +36,7 @@ function showToast(msg, type = 'success') {
   toast.className = 'toast ' + type;
   toast.textContent = msg;
   document.getElementById('toastContainer').appendChild(toast);
-  setTimeout(() => toast.remove(), 3000);
+  setTimeout(() => toast.remove(), 4000);
 }
 
 async function init() {
@@ -49,7 +49,6 @@ async function init() {
   const userId = sessionData.session.user.id;
   const userEmail = sessionData.session.user.email;
 
-  // Cargar datos del barbero
   const { data: barberoData, error } = await supabaseClient
     .from('barberos')
     .select('*, negocios(nombre, subdominio)')
@@ -66,12 +65,10 @@ async function init() {
   barbero = barberoData;
   negocio = barberoData.negocios;
 
-  // Header
   document.getElementById('barberoNombre').textContent = barbero.nombre;
   document.getElementById('negocioNombreLabel').textContent = negocio.nombre;
   document.getElementById('userEmail').textContent = userEmail;
 
-  // Avatar en header
   const initials = getInitials(barbero.nombre);
   document.getElementById('avatarInitials').textContent = initials;
   if (barbero.foto_url) {
@@ -81,7 +78,6 @@ async function init() {
     document.getElementById('avatarInitials').style.display = 'none';
   }
 
-  // Cargar formulario perfil
   loadPerfilForm();
 
   document.getElementById('loadingView').style.display = 'none';
@@ -100,7 +96,7 @@ function initRealtime() {
       (payload) => {
         loadCitas();
         if (payload.eventType === 'INSERT') {
-          showToast(`🔔 Nueva cita: ${payload.new.nombre_cliente}`);
+          showToast(`Nueva cita: ${payload.new.nombre_cliente}`);
           playNotifSound();
         }
       }
@@ -138,7 +134,6 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
   });
 });
 
-// ---------- CITAS ----------
 async function loadCitas() {
   const { data, error } = await supabaseClient
     .from('citas').select('*')
@@ -194,7 +189,6 @@ function renderCitas() {
     return;
   }
 
-  // Encontrar la siguiente cita (primera confirmada de hoy que aún no pasó)
   const now = new Date();
   const nowMinutes = now.getHours() * 60 + now.getMinutes();
   let siguienteId = null;
@@ -248,7 +242,7 @@ function renderCitas() {
 async function updateEstadoCita(id, estado) {
   const { error } = await supabaseClient.from('citas').update({ estado }).eq('id', id);
   if (error) return showToast('Error al actualizar', 'error');
-  showToast(estado === 'completada' ? '✓ Cita completada' : 'Cita cancelada');
+  showToast(estado === 'completada' ? 'Cita completada' : 'Cita cancelada');
   loadCitas();
 }
 
@@ -260,7 +254,6 @@ document.getElementById('filterBar').addEventListener('click', (e) => {
   renderCitas();
 });
 
-// ---------- PERFIL ----------
 function loadPerfilForm() {
   document.getElementById('perfilNombre').value = barbero.nombre || '';
   document.getElementById('perfilTelefono').value = barbero.telefono || '';
@@ -286,25 +279,69 @@ function loadPerfilForm() {
 
 document.getElementById('perfilForm').addEventListener('submit', async (e) => {
   e.preventDefault();
+  const submitBtn = e.target.querySelector('button[type="submit"]');
+  submitBtn.disabled = true;
+
   const nombre = document.getElementById('perfilNombre').value.trim();
   const telefono = document.getElementById('perfilTelefono').value.trim();
+  const email = document.getElementById('perfilEmail').value.trim().toLowerCase();
 
-  const { error } = await supabaseClient
-    .from('barberos')
-    .update({ nombre, telefono })
-    .eq('id', barbero.id);
+  try {
+    // Actualizar nombre y teléfono en la tabla barberos
+    const { error: updateError } = await supabaseClient
+      .from('barberos')
+      .update({ nombre, telefono })
+      .eq('id', barbero.id);
 
-  if (error) return showToast('Error al guardar', 'error');
+    if (updateError) {
+      showToast('Error al guardar datos', 'error');
+      submitBtn.disabled = false;
+      return;
+    }
 
-  barbero.nombre = nombre;
-  barbero.telefono = telefono;
-  document.getElementById('barberoNombre').textContent = nombre;
-  document.getElementById('avatarInitials').textContent = getInitials(nombre);
-  document.getElementById('fotoPlaceholder').textContent = getInitials(nombre);
-  showToast('Perfil actualizado');
+    barbero.nombre = nombre;
+    barbero.telefono = telefono;
+    document.getElementById('barberoNombre').textContent = nombre;
+    document.getElementById('avatarInitials').textContent = getInitials(nombre);
+    document.getElementById('fotoPlaceholder').textContent = getInitials(nombre);
+
+    // Si el email cambió, actualizarlo en Auth y en tabla
+    const emailAnterior = (barbero.email || '').toLowerCase();
+    if (email !== emailAnterior) {
+      // Actualizar email en Supabase Auth
+      const { error: authError } = await supabaseClient.auth.updateUser({ email });
+
+      if (authError) {
+        showToast('Error al cambiar email: ' + authError.message, 'error');
+        submitBtn.disabled = false;
+        return;
+      }
+
+      // Actualizar email en tabla barberos
+      const { error: emailError } = await supabaseClient
+        .from('barberos')
+        .update({ email })
+        .eq('id', barbero.id);
+
+      if (emailError) {
+        showToast('Email de auth cambiado pero error al guardar en tabla', 'error');
+        submitBtn.disabled = false;
+        return;
+      }
+
+      barbero.email = email;
+      showToast('Datos guardados. Revisa tu nuevo correo para confirmar el cambio de email.');
+    } else {
+      showToast('Datos guardados');
+    }
+  } catch (err) {
+    console.error(err);
+    showToast('Error inesperado', 'error');
+  } finally {
+    submitBtn.disabled = false;
+  }
 });
 
-// FOTO UPLOAD
 document.getElementById('uploadFotoBtn').addEventListener('click', () => {
   document.getElementById('fotoInput').click();
 });
@@ -363,7 +400,6 @@ document.getElementById('removeFotoBtn').addEventListener('click', async () => {
   showToast('Foto eliminada');
 });
 
-// CAMBIAR CONTRASEÑA
 document.getElementById('passwordForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const pass1 = document.getElementById('newPassword').value;
