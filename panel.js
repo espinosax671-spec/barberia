@@ -87,7 +87,6 @@ async function init() {
     headerLogo.style.display = 'block';
   }
 
-  // Badge de suscripción oculto por ahora
   const badge = document.getElementById('planBadge');
   badge.style.display = 'none';
 
@@ -836,6 +835,263 @@ document.addEventListener('click', (e) => {
     document.getElementById('notifDropdown').style.display = 'none';
   }
 });
+
+// ========== ESTADÍSTICAS ==========
+let currentPeriod = 'hoy';
+let chartCitasDia = null;
+let chartEstados = null;
+
+document.getElementById('openStatsBtn').addEventListener('click', () => {
+  document.getElementById('statsModal').style.display = 'flex';
+  loadEstadisticas();
+});
+
+document.getElementById('closeStatsBtn').addEventListener('click', () => {
+  document.getElementById('statsModal').style.display = 'none';
+});
+
+document.querySelectorAll('.stats-filter').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.stats-filter').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentPeriod = btn.dataset.period;
+    loadEstadisticas();
+  });
+});
+
+function getDateRange(period) {
+  const now = new Date();
+  const hoy = now.toISOString().slice(0, 10);
+  let start = hoy;
+
+  if (period === 'semana') {
+    const d = new Date(now);
+    const dayOfWeek = d.getDay() === 0 ? 6 : d.getDay() - 1;
+    d.setDate(d.getDate() - dayOfWeek);
+    start = d.toISOString().slice(0, 10);
+  } else if (period === 'mes') {
+    start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
+  } else if (period === '30dias') {
+    const d = new Date(now);
+    d.setDate(d.getDate() - 30);
+    start = d.toISOString().slice(0, 10);
+  }
+
+  return { start, end: hoy };
+}
+
+async function loadEstadisticas() {
+  const { start, end } = getDateRange(currentPeriod);
+  const hoy = new Date().toISOString().slice(0, 10);
+
+  const { data: citasPeriodo } = await supabaseClient
+    .from('citas')
+    .select('*, barberos(nombre)')
+    .eq('negocio_id', negocio.id)
+    .gte('fecha', start)
+    .lte('fecha', end);
+
+  const citasP = citasPeriodo || [];
+  const completadas = citasP.filter(c => c.estado === 'completada');
+  const canceladas = citasP.filter(c => c.estado === 'cancelada');
+  const confirmadas = citasP.filter(c => c.estado === 'confirmada');
+  const citasHoy = citasP.filter(c => c.fecha === hoy);
+
+  const ingresos = completadas.reduce((sum, c) => sum + (c.precio || 0), 0);
+  document.getElementById('kpiIngresos').textContent = formatCOP(ingresos);
+  document.getElementById('kpiCompletadas').textContent = completadas.length;
+  document.getElementById('kpiHoy').textContent = citasHoy.length;
+
+  const totalFinalizadas = completadas.length + canceladas.length;
+  const asistencia = totalFinalizadas > 0
+    ? Math.round((completadas.length / totalFinalizadas) * 100)
+    : 0;
+  document.getElementById('kpiAsistencia').textContent = asistencia + '%';
+
+  renderChartCitasDia();
+  renderChartEstados(completadas.length, canceladas.length, confirmadas.length);
+  renderTopBarberos(completadas);
+  renderTopServicios(completadas);
+  renderTopHoras(citasP);
+}
+
+async function renderChartCitasDia() {
+  const dias = [];
+  const labels = [];
+  const now = new Date();
+
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    dias.push(d.toISOString().slice(0, 10));
+    labels.push(d.toLocaleDateString('es-CO', { weekday: 'short', day: 'numeric' }));
+  }
+
+  const { data } = await supabaseClient
+    .from('citas')
+    .select('fecha, estado')
+    .eq('negocio_id', negocio.id)
+    .in('estado', ['completada', 'confirmada'])
+    .in('fecha', dias);
+
+  const counts = dias.map(dia => (data || []).filter(c => c.fecha === dia).length);
+
+  const canvas = document.getElementById('chartCitasDia');
+  if (chartCitasDia) chartCitasDia.destroy();
+
+  chartCitasDia = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Citas',
+        data: counts,
+        backgroundColor: 'rgba(40, 86, 214, 0.85)',
+        borderRadius: 6,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { stepSize: 1 } }
+      }
+    }
+  });
+}
+
+function renderChartEstados(comp, can, conf) {
+  const canvas = document.getElementById('chartEstados');
+  if (chartEstados) chartEstados.destroy();
+
+  if (comp + can + conf === 0) {
+    canvas.parentElement.innerHTML = '<p class="stats-empty">Sin datos en este período</p>';
+    return;
+  }
+
+  chartEstados = new Chart(canvas, {
+    type: 'doughnut',
+    data: {
+      labels: ['Completadas', 'Canceladas', 'Pendientes'],
+      datasets: [{
+        data: [comp, can, conf],
+        backgroundColor: ['#157a3d', '#c8202f', '#2856d6'],
+        borderWidth: 0,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { padding: 12, font: { size: 12 } } }
+      }
+    }
+  });
+}
+
+function renderTopBarberos(completadas) {
+  const list = document.getElementById('rankingBarberos');
+  const conteo = {};
+
+  completadas.forEach(c => {
+    const nombre = c.barberos ? c.barberos.nombre : 'Sin barbero';
+    if (!conteo[nombre]) conteo[nombre] = { citas: 0, ingresos: 0 };
+    conteo[nombre].citas++;
+    conteo[nombre].ingresos += c.precio || 0;
+  });
+
+  const ranking = Object.entries(conteo)
+    .sort((a, b) => b[1].ingresos - a[1].ingresos)
+    .slice(0, 5);
+
+  if (!ranking.length) {
+    list.innerHTML = '<p class="stats-empty">Sin datos aún</p>';
+    return;
+  }
+
+  list.innerHTML = ranking.map(([nombre, stats], i) => `
+    <div class="ranking-item">
+      <div class="ranking-position">${i + 1}</div>
+      <div class="ranking-info">
+        <strong>${nombre}</strong>
+        <span>${stats.citas} ${stats.citas === 1 ? 'cita' : 'citas'}</span>
+      </div>
+      <div class="ranking-value">${formatCOP(stats.ingresos)}</div>
+    </div>
+  `).join('');
+}
+
+function renderTopServicios(completadas) {
+  const list = document.getElementById('rankingServicios');
+  const conteo = {};
+
+  completadas.forEach(c => {
+    const nombre = c.servicio_nombre || 'Sin nombre';
+    if (!conteo[nombre]) conteo[nombre] = { veces: 0, total: 0 };
+    conteo[nombre].veces++;
+    conteo[nombre].total += c.precio || 0;
+  });
+
+  const ranking = Object.entries(conteo)
+    .sort((a, b) => b[1].veces - a[1].veces)
+    .slice(0, 5);
+
+  if (!ranking.length) {
+    list.innerHTML = '<p class="stats-empty">Sin datos aún</p>';
+    return;
+  }
+
+  list.innerHTML = ranking.map(([nombre, stats], i) => `
+    <div class="ranking-item">
+      <div class="ranking-position">${i + 1}</div>
+      <div class="ranking-info">
+        <strong>${nombre}</strong>
+        <span>${stats.veces} ${stats.veces === 1 ? 'vez' : 'veces'}</span>
+      </div>
+      <div class="ranking-value">${formatCOP(stats.total)}</div>
+    </div>
+  `).join('');
+}
+
+function renderTopHoras(citasP) {
+  const list = document.getElementById('rankingHoras');
+  const conteo = {};
+
+  citasP.forEach(c => {
+    if (c.estado === 'cancelada') return;
+    const hora = Math.floor(c.hora_inicio / 60);
+    const bloque = `${hora}:00`;
+    if (!conteo[bloque]) conteo[bloque] = 0;
+    conteo[bloque]++;
+  });
+
+  const ranking = Object.entries(conteo)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
+
+  if (!ranking.length) {
+    list.innerHTML = '<p class="stats-empty">Sin datos aún</p>';
+    return;
+  }
+
+  list.innerHTML = ranking.map(([hora, veces], i) => {
+    const horaNum = parseInt(hora);
+    const period = horaNum >= 12 ? 'p.m.' : 'a.m.';
+    let h12 = horaNum % 12;
+    if (h12 === 0) h12 = 12;
+    return `
+      <div class="ranking-item">
+        <div class="ranking-position">${i + 1}</div>
+        <div class="ranking-info">
+          <strong>${h12}:00 ${period}</strong>
+          <span>${veces} ${veces === 1 ? 'cita' : 'citas'}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+// ========== FIN ESTADÍSTICAS ==========
 
 setInterval(() => { loadNotificaciones(); loadCitas(); }, 60000);
 
