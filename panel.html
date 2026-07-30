@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="panel.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body class="panel-body">
 
@@ -27,7 +28,7 @@
     </div>
     <div class="panel-header-right">
       <span id="planBadge" class="plan-badge"></span>
-      <button class="btn-stats">
+      <button class="btn-stats" id="openStatsBtn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M18 20V10M12 20V4M6 20v-6"/>
         </svg>
@@ -141,7 +142,6 @@
         <h1>Diseño</h1>
       </div>
       <form id="negocioForm" class="negocio-form">
-
         <div class="field logo-upload-field">
           <label>Logo de tu barbería</label>
           <div class="logo-upload">
@@ -157,7 +157,6 @@
           </div>
           <span class="field-hint">Recomendado: 300x300px · Formatos: JPG, PNG · Máx 2MB</span>
         </div>
-
         <div class="field">
           <label for="campoNombre">Nombre de la barbería</label>
           <input type="text" id="campoNombre" required>
@@ -218,7 +217,7 @@
   </div>
 </div>
 
-<!-- Modal credenciales creadas -->
+<!-- Modal credenciales -->
 <div id="credencialesModal" class="modal-overlay" style="display:none;">
   <div class="modal">
     <h2>✅ Barbero creado</h2>
@@ -230,6 +229,92 @@
       <button type="button" class="btn btn-ghost" id="copyCredencialesBtn">Copiar mensaje</button>
       <button type="button" class="btn btn-primary" id="closeCredencialesBtn">Listo</button>
     </div>
+  </div>
+</div>
+
+<!-- Modal Estadísticas -->
+<div id="statsModal" class="modal-overlay" style="display:none;">
+  <div class="modal modal-stats">
+    <div class="modal-stats-header">
+      <h2>📊 Estadísticas</h2>
+      <button type="button" class="modal-close-btn" id="closeStatsBtn">✕</button>
+    </div>
+
+    <div class="stats-filters">
+      <button class="stats-filter active" data-period="hoy">Hoy</button>
+      <button class="stats-filter" data-period="semana">Esta semana</button>
+      <button class="stats-filter" data-period="mes">Este mes</button>
+      <button class="stats-filter" data-period="30dias">Últimos 30 días</button>
+    </div>
+
+    <!-- KPIs -->
+    <div class="stats-kpis">
+      <div class="kpi-card kpi-money">
+        <div class="kpi-icon">💰</div>
+        <div class="kpi-info">
+          <div class="kpi-value" id="kpiIngresos">$0</div>
+          <div class="kpi-label">Ingresos</div>
+        </div>
+      </div>
+      <div class="kpi-card kpi-scissors">
+        <div class="kpi-icon">✂️</div>
+        <div class="kpi-info">
+          <div class="kpi-value" id="kpiCompletadas">0</div>
+          <div class="kpi-label">Citas completadas</div>
+        </div>
+      </div>
+      <div class="kpi-card kpi-calendar">
+        <div class="kpi-icon">📅</div>
+        <div class="kpi-info">
+          <div class="kpi-value" id="kpiHoy">0</div>
+          <div class="kpi-label">Citas hoy</div>
+        </div>
+      </div>
+      <div class="kpi-card kpi-chart">
+        <div class="kpi-icon">📈</div>
+        <div class="kpi-info">
+          <div class="kpi-value" id="kpiAsistencia">0%</div>
+          <div class="kpi-label">Tasa asistencia</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gráfica citas por día -->
+    <div class="stats-chart-card">
+      <h3>📊 Citas por día (últimos 7 días)</h3>
+      <div class="chart-container">
+        <canvas id="chartCitasDia"></canvas>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <!-- Top barberos -->
+      <div class="stats-card">
+        <h3>🏆 Top barberos</h3>
+        <div class="ranking-list" id="rankingBarberos"></div>
+      </div>
+
+      <!-- Top servicios -->
+      <div class="stats-card">
+        <h3>⭐ Servicios más pedidos</h3>
+        <div class="ranking-list" id="rankingServicios"></div>
+      </div>
+
+      <!-- Horas pico -->
+      <div class="stats-card">
+        <h3>⏰ Horas más solicitadas</h3>
+        <div class="ranking-list" id="rankingHoras"></div>
+      </div>
+
+      <!-- Estados de citas -->
+      <div class="stats-card">
+        <h3>📋 Estado de citas</h3>
+        <div class="chart-container-small">
+          <canvas id="chartEstados"></canvas>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
