@@ -1,1 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mi agenda — CitaBarber</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="mi-agenda.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="agenda-body">
 
+<div id="loadingView" class="agenda-loading">
+  <div class="spinner"></div>
+  <p class="hint">Cargando tu agenda…</p>
+</div>
+
+<div id="agendaView" style="display:none;">
+
+  <!-- Header -->
+  <header class="agenda-header">
+    <div class="agenda-header-left">
+      <div class="barbero-avatar-header" id="avatarHeader">
+        <span id="avatarInitials">B</span>
+        <img id="avatarImg" src="" alt="" style="display:none;">
+      </div>
+      <div class="header-info">
+        <span class="brand" id="barberoNombre">Cargando...</span>
+        <span class="brand-tag" id="negocioNombreLabel">Mi agenda</span>
+      </div>
+    </div>
+    <div class="agenda-header-right">
+      <span id="userEmail" class="agenda-user"></span>
+      <button id="logoutBtn" class="logout-link">Cerrar sesión</button>
+    </div>
+  </header>
+
+  <!-- Tabs -->
+  <nav class="agenda-tabs">
+    <button class="tab-btn active" data-tab="citas">
+      Mis citas <span class="tab-count" id="citasCount">0</span>
+    </button>
+    <button class="tab-btn" data-tab="perfil">Mi perfil</button>
+  </nav>
+
+  <main class="agenda-main">
+
+    <!-- TAB CITAS -->
+    <section class="tab-panel" id="tab-citas">
+      <div class="agenda-section-header">
+        <h1>Mi agenda</h1>
+        <div class="filter-bar" id="filterBar">
+          <button class="filter-chip active" data-filter="hoy">Hoy <span class="count" id="c-hoy">0</span></button>
+          <button class="filter-chip" data-filter="manana">Mañana <span class="count" id="c-manana">0</span></button>
+          <button class="filter-chip" data-filter="semana">Esta semana <span class="count" id="c-semana">0</span></button>
+          <button class="filter-chip" data-filter="todas">Todas <span class="count" id="c-todas">0</span></button>
+        </div>
+      </div>
+      <div id="citasList" class="citas-list"></div>
+    </section>
+
+    <!-- TAB PERFIL -->
+    <section class="tab-panel" id="tab-perfil" style="display:none;">
+      <div class="agenda-section-header">
+        <h1>Mi perfil</h1>
+      </div>
+
+      <form id="perfilForm" class="perfil-form">
+
+        <!-- Foto de perfil -->
+        <div class="field foto-upload-field">
+          <label>Foto de perfil</label>
+          <div class="foto-upload">
+            <div class="foto-preview" id="fotoPreview">
+              <span id="fotoPlaceholder" class="foto-initials">B</span>
+              <img id="fotoImg" src="" alt="Foto" style="display:none;">
+            </div>
+            <div class="foto-actions">
+              <input type="file" id="fotoInput" accept="image/*" style="display:none;">
+              <button type="button" class="btn btn-blue btn-sm" id="uploadFotoBtn">Subir foto</button>
+              <button type="button" class="btn btn-ghost btn-sm" id="removeFotoBtn" style="display:none;">Quitar</button>
+            </div>
+          </div>
+          <span class="field-hint">Recomendado: 400x400px cuadrada · Formatos: JPG, PNG · Máx 2MB</span>
+        </div>
+
+        <div class="field">
+          <label for="perfilNombre">Nombre</label>
+          <input type="text" id="perfilNombre" required>
+        </div>
+
+        <div class="field">
+          <label for="perfilTelefono">Teléfono</label>
+          <input type="tel" id="perfilTelefono" placeholder="3000000000">
+        </div>
+
+        <div class="field">
+          <label for="perfilEmail">Email (no editable)</label>
+          <input type="email" id="perfilEmail" disabled>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Guardar cambios</button>
+      </form>
+
+      <!-- Cambiar contraseña -->
+      <div class="password-section">
+        <h2>Cambiar contraseña</h2>
+        <form id="passwordForm" class="perfil-form">
+          <div class="field">
+            <label for="newPassword">Nueva contraseña</label>
+            <input type="password" id="newPassword" minlength="6" required placeholder="Mín. 6 caracteres">
+          </div>
+          <div class="field">
+            <label for="newPassword2">Confirmar contraseña</label>
+            <input type="password" id="newPassword2" minlength="6" required placeholder="Repite la contraseña">
+          </div>
+          <button type="submit" class="btn btn-dark">Actualizar contraseña</button>
+        </form>
+      </div>
+
+    </section>
+
+  </main>
+</div>
+
+<div id="toastContainer"></div>
+
+<script src="config.js"></script>
+<script src="mi-agenda.js"></script>
+</body>
+</html>
