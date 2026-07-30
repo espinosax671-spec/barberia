@@ -93,7 +93,7 @@ async function init() {
   const tiendaUrl = `${APP_BASE_URL}/reservar.html?b=${negocio.subdominio}`;
   document.getElementById('tiendaUrl').textContent = tiendaUrl.replace(/^https?:\/\//, '');
   document.getElementById('viewShopBtn').href = tiendaUrl;
-  const shareMsg = encodeURIComponent(`¡Agenda tu cita en ${negocio.nombre}! 💈\n${tiendaUrl}`);
+  const shareMsg = encodeURIComponent(`¡Agenda tu cita en ${negocio.nombre}!\n${tiendaUrl}`);
   document.getElementById('shareWhatsappBtn').href = `https://wa.me/?text=${shareMsg}`;
 
   document.getElementById('copyUrlBtn').addEventListener('click', () => {
@@ -121,7 +121,7 @@ function initRealtime() {
       (payload) => {
         loadCitas();
         if (payload.eventType === 'INSERT') {
-          showToast(`🔔 Nueva cita: ${payload.new.nombre_cliente}`);
+          showToast(`Nueva cita: ${payload.new.nombre_cliente}`);
           playNotifSound();
         }
       }
