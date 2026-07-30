@@ -19,7 +19,6 @@
 
 <div id="agendaView" style="display:none;">
 
-  <!-- Header -->
   <header class="agenda-header">
     <div class="agenda-header-left">
       <div class="barbero-avatar-header" id="avatarHeader">
@@ -37,7 +36,6 @@
     </div>
   </header>
 
-  <!-- Tabs -->
   <nav class="agenda-tabs">
     <button class="tab-btn active" data-tab="citas">
       Mis citas <span class="tab-count" id="citasCount">0</span>
@@ -47,7 +45,6 @@
 
   <main class="agenda-main">
 
-    <!-- TAB CITAS -->
     <section class="tab-panel" id="tab-citas">
       <div class="agenda-section-header">
         <h1>Mi agenda</h1>
@@ -61,7 +58,6 @@
       <div id="citasList" class="citas-list"></div>
     </section>
 
-    <!-- TAB PERFIL -->
     <section class="tab-panel" id="tab-perfil" style="display:none;">
       <div class="agenda-section-header">
         <h1>Mi perfil</h1>
@@ -69,7 +65,6 @@
 
       <form id="perfilForm" class="perfil-form">
 
-        <!-- Foto de perfil -->
         <div class="field foto-upload-field">
           <label>Foto de perfil</label>
           <div class="foto-upload">
@@ -97,14 +92,14 @@
         </div>
 
         <div class="field">
-          <label for="perfilEmail">Email (no editable)</label>
-          <input type="email" id="perfilEmail" disabled>
+          <label for="perfilEmail">Email</label>
+          <input type="email" id="perfilEmail" required placeholder="tucorreo@ejemplo.com">
+          <span class="field-hint">Si cambias tu email, recibirás un correo de confirmación en la nueva dirección</span>
         </div>
 
         <button type="submit" class="btn btn-primary">Guardar cambios</button>
       </form>
 
-      <!-- Cambiar contraseña -->
       <div class="password-section">
         <h2>Cambiar contraseña</h2>
         <form id="passwordForm" class="perfil-form">
