@@ -81,7 +81,6 @@ async function init() {
   document.getElementById('negocioNombre').textContent = negocio.nombre;
   document.getElementById('userEmail').textContent = userEmail;
 
-  // Cargar logo en header
   if (negocio.logo_url) {
     const headerLogo = document.getElementById('headerLogo');
     headerLogo.src = negocio.logo_url;
@@ -121,23 +120,15 @@ async function init() {
 }
 
 function initRealtime() {
-  console.log('🔴 Realtime iniciado para negocio:', negocio.id);
-
   supabaseClient
     .channel('citas-' + negocio.id)
     .on(
       'postgres_changes',
-      {
-        event: '*',
-        schema: 'public',
-        table: 'citas',
-        filter: `negocio_id=eq.${negocio.id}`,
-      },
+      { event: '*', schema: 'public', table: 'citas', filter: `negocio_id=eq.${negocio.id}` },
       (payload) => {
         loadCitas();
         if (payload.eventType === 'INSERT') {
-          const cita = payload.new;
-          showToast(`🔔 Nueva cita: ${cita.nombre_cliente}`);
+          showToast(`🔔 Nueva cita: ${payload.new.nombre_cliente}`);
           playNotifSound();
         }
       }
@@ -148,15 +139,18 @@ function initRealtime() {
     .channel('notif-' + negocio.id)
     .on(
       'postgres_changes',
-      {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'notificaciones',
-        filter: `negocio_id=eq.${negocio.id}`,
-      },
-      () => {
-        loadNotificaciones();
-      }
+      { event: 'INSERT', schema: 'public', table: 'notificaciones', filter: `negocio_id=eq.${negocio.id}` },
+      () => loadNotificaciones()
+    )
+    .subscribe();
+
+  // Realtime para foto de barberos (por si el barbero actualiza su foto)
+  supabaseClient
+    .channel('barberos-' + negocio.id)
+    .on(
+      'postgres_changes',
+      { event: 'UPDATE', schema: 'public', table: 'barberos', filter: `negocio_id=eq.${negocio.id}` },
+      () => loadBarberos()
     )
     .subscribe();
 }
@@ -197,8 +191,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 
 async function loadBarberos() {
   const { data, error } = await supabaseClient
-    .from('barberos')
-    .select('*')
+    .from('barberos').select('*')
     .eq('negocio_id', negocio.id)
     .order('orden', { ascending: true });
 
@@ -229,11 +222,16 @@ function renderBarberosList() {
   barberos.forEach(b => {
     const card = document.createElement('div');
     card.className = 'barbero-card' + (b.activo ? '' : ' inactivo');
+    const avatarHtml = b.foto_url
+      ? `<div class="barbero-avatar has-photo"><img src="${b.foto_url}" alt="${b.nombre}"></div>`
+      : `<div class="barbero-avatar">${getInitials(b.nombre)}</div>`;
+
     card.innerHTML = `
-      <div class="barbero-avatar">${getInitials(b.nombre)}</div>
+      ${avatarHtml}
       <div class="barbero-card-info">
         <strong>${b.nombre}</strong>
         <span>${b.telefono || 'Sin teléfono'}</span>
+        ${b.email ? `<span class="barbero-email">${b.email}</span>` : ''}
       </div>
       <div class="barbero-card-actions">
         <button class="edit-btn">Editar</button>
@@ -289,6 +287,17 @@ function openBarberoModal(barbero) {
   document.getElementById('barberoModalTitle').textContent = barbero ? 'Editar barbero' : 'Nuevo barbero';
   document.getElementById('modalBarberoNombre').value = barbero ? barbero.nombre : '';
   document.getElementById('modalBarberoTel').value = barbero ? barbero.telefono || '' : '';
+  document.getElementById('modalBarberoEmail').value = barbero ? barbero.email || '' : '';
+  document.getElementById('modalBarberoPass').value = '';
+
+  // Si es edición y ya tiene cuenta, ocultar campos de auth
+  const authFields = document.getElementById('authFields');
+  if (barbero && barbero.auth_user_id) {
+    authFields.style.display = 'none';
+  } else {
+    authFields.style.display = 'block';
+  }
+
   document.getElementById('barberoModal').style.display = 'flex';
 }
 
@@ -298,28 +307,86 @@ document.getElementById('cancelBarberoBtn').addEventListener('click', () => {
 
 document.getElementById('barberoForm').addEventListener('submit', async (e) => {
   e.preventDefault();
+  const submitBtn = document.getElementById('submitBarberoBtn');
+  submitBtn.disabled = true;
+
   const nombre = document.getElementById('modalBarberoNombre').value.trim();
   const telefono = document.getElementById('modalBarberoTel').value.trim();
+  const email = document.getElementById('modalBarberoEmail').value.trim();
+  const password = document.getElementById('modalBarberoPass').value;
 
-  if (editingBarberoId) {
-    await supabaseClient.from('barberos').update({ nombre, telefono }).eq('id', editingBarberoId);
-    showToast('Barbero actualizado');
-  } else {
-    const { data: nuevoBarbero } = await supabaseClient
-      .from('barberos')
-      .insert({
-        negocio_id: negocio.id,
-        nombre, telefono, activo: true,
-        orden: barberos.length + 1,
-      })
-      .select().single();
+  try {
+    if (editingBarberoId) {
+      // EDITAR barbero existente
+      await supabaseClient.from('barberos').update({ nombre, telefono }).eq('id', editingBarberoId);
+      showToast('Barbero actualizado');
+      document.getElementById('barberoModal').style.display = 'none';
+      loadBarberos();
+    } else {
+      // CREAR barbero nuevo
+      let authUserId = null;
 
-    if (nuevoBarbero) {
+      // Si dio email y contraseña, crear cuenta auth
+      if (email && password) {
+        if (password.length < 6) {
+          showToast('La contraseña debe tener al menos 6 caracteres', 'error');
+          submitBtn.disabled = false;
+          return;
+        }
+
+        // Guardar sesión actual del dueño
+        const { data: currentSession } = await supabaseClient.auth.getSession();
+
+        // Crear cuenta del barbero
+        const { data: authData, error: authError } = await supabaseClient.auth.signUp({
+          email,
+          password,
+        });
+
+        if (authError) {
+          showToast('Error al crear cuenta: ' + authError.message, 'error');
+          submitBtn.disabled = false;
+          return;
+        }
+
+        authUserId = authData.user.id;
+
+        // Restaurar sesión del dueño
+        if (currentSession.session) {
+          await supabaseClient.auth.setSession({
+            access_token: currentSession.session.access_token,
+            refresh_token: currentSession.session.refresh_token,
+          });
+        }
+      }
+
+      // Crear barbero en la tabla
+      const { data: nuevoBarbero, error: barberoError } = await supabaseClient
+        .from('barberos')
+        .insert({
+          negocio_id: negocio.id,
+          nombre,
+          telefono,
+          email: email || null,
+          auth_user_id: authUserId,
+          activo: true,
+          orden: barberos.length + 1,
+        })
+        .select().single();
+
+      if (barberoError) {
+        showToast('Error al crear barbero: ' + barberoError.message, 'error');
+        submitBtn.disabled = false;
+        return;
+      }
+
+      // Crear horarios por defecto
       const horarios = HORARIOS_DEFAULT.map(h => ({
         ...h, negocio_id: negocio.id, barbero_id: nuevoBarbero.id,
       }));
       await supabaseClient.from('horarios').insert(horarios);
 
+      // Copiar servicios del primer barbero
       let serviciosBase = [];
       if (barberos.length > 0) {
         const { data: serviciosExistentes } = await supabaseClient
@@ -347,23 +414,58 @@ document.getElementById('barberoForm').addEventListener('submit', async (e) => {
         negocio_id: negocio.id, barbero_id: nuevoBarbero.id, activo: true,
       }));
       await supabaseClient.from('servicios').insert(serviciosParaCrear);
+
+      document.getElementById('barberoModal').style.display = 'none';
+
+      // Si creamos cuenta, mostrar credenciales
+      if (email && password) {
+        mostrarCredenciales(nombre, email, password);
+      } else {
+        showToast('Barbero creado');
+      }
+
+      loadBarberos();
     }
-    showToast('Barbero creado con sus servicios');
+  } catch (err) {
+    console.error(err);
+    showToast('Error inesperado', 'error');
+  } finally {
+    submitBtn.disabled = false;
   }
-  document.getElementById('barberoModal').style.display = 'none';
-  loadBarberos();
 });
+
+function mostrarCredenciales(nombre, email, password) {
+  const loginUrl = `${APP_BASE_URL}/login.html`;
+  const box = document.getElementById('credencialesBox');
+  box.innerHTML = `
+    <div class="cred-row"><span>Nombre</span><span>${nombre}</span></div>
+    <div class="cred-row"><span>Link</span><span>${loginUrl}</span></div>
+    <div class="cred-row"><span>Email</span><span>${email}</span></div>
+    <div class="cred-row"><span>Contraseña</span><span>${password}</span></div>
+  `;
+
+  const mensaje = `Hola ${nombre}! Ya tienes acceso a tu panel en ${negocio.nombre}.\n\nEntra aquí: ${loginUrl}\nEmail: ${email}\nContraseña: ${password}\n\n(Puedes cambiar la contraseña después)`;
+
+  document.getElementById('copyCredencialesBtn').onclick = () => {
+    navigator.clipboard.writeText(mensaje);
+    showToast('Mensaje copiado');
+  };
+
+  document.getElementById('closeCredencialesBtn').onclick = () => {
+    document.getElementById('credencialesModal').style.display = 'none';
+  };
+
+  document.getElementById('credencialesModal').style.display = 'flex';
+}
 
 async function loadCitas() {
   const { data, error } = await supabaseClient
-    .from('citas')
-    .select('*, barberos(nombre)')
+    .from('citas').select('*, barberos(nombre)')
     .eq('negocio_id', negocio.id)
     .order('fecha', { ascending: false })
     .order('hora_inicio', { ascending: true });
 
   if (error) { console.error(error); return; }
-
   citas = data || [];
   renderCitas();
 }
@@ -457,8 +559,7 @@ async function loadServicios() {
   renderBarberosSelectors();
 
   const { data, error } = await supabaseClient
-    .from('servicios')
-    .select('*')
+    .from('servicios').select('*')
     .eq('negocio_id', negocio.id)
     .eq('barbero_id', currentBarberoServicios)
     .order('orden', { ascending: true });
@@ -467,7 +568,7 @@ async function loadServicios() {
   if (error) { list.innerHTML = '<p class="hint">Error.</p>'; return; }
 
   if (!data.length) {
-    list.innerHTML = `<div class="empty-state"><h3>Este barbero no tiene servicios</h3><p>Agrega servicios para que los clientes puedan reservar.</p></div>`;
+    list.innerHTML = `<div class="empty-state"><h3>Sin servicios</h3><p>Agrega servicios.</p></div>`;
     return;
   }
 
@@ -634,13 +735,12 @@ document.getElementById('negocioForm').addEventListener('submit', async (e) => {
     .eq('id', negocio.id);
 
   if (error) return showToast('Error al guardar', 'error');
-
   negocio.nombre = nombre;
   document.getElementById('negocioNombre').textContent = nombre;
   showToast('Datos actualizados');
 });
 
-// ---------- LOGO UPLOAD ----------
+// LOGO UPLOAD
 document.getElementById('uploadLogoBtn').addEventListener('click', () => {
   document.getElementById('logoInput').click();
 });
@@ -648,30 +748,18 @@ document.getElementById('uploadLogoBtn').addEventListener('click', () => {
 document.getElementById('logoInput').addEventListener('change', async (e) => {
   const file = e.target.files[0];
   if (!file) return;
-
-  if (file.size > 2 * 1024 * 1024) {
-    showToast('El logo no puede pesar más de 2MB', 'error');
-    return;
-  }
-  if (!file.type.startsWith('image/')) {
-    showToast('Solo se aceptan imágenes', 'error');
-    return;
-  }
+  if (file.size > 2 * 1024 * 1024) { showToast('Máx 2MB', 'error'); return; }
+  if (!file.type.startsWith('image/')) { showToast('Solo imágenes', 'error'); return; }
 
   showToast('Subiendo logo...');
-
   const fileExt = file.name.split('.').pop();
   const fileName = `logo-${Date.now()}.${fileExt}`;
   const filePath = `${negocio.id}/${fileName}`;
 
   const { error: uploadError } = await supabaseClient.storage
-    .from('logos')
-    .upload(filePath, file, { cacheControl: '3600', upsert: true });
+    .from('logos').upload(filePath, file, { cacheControl: '3600', upsert: true });
 
-  if (uploadError) {
-    console.error(uploadError);
-    return showToast('Error al subir: ' + uploadError.message, 'error');
-  }
+  if (uploadError) return showToast('Error: ' + uploadError.message, 'error');
 
   const { data: urlData } = supabaseClient.storage.from('logos').getPublicUrl(filePath);
   const logoUrl = urlData.publicUrl;
@@ -679,35 +767,29 @@ document.getElementById('logoInput').addEventListener('change', async (e) => {
   const { error: updateError } = await supabaseClient
     .from('negocios').update({ logo_url: logoUrl }).eq('id', negocio.id);
 
-  if (updateError) return showToast('Error al guardar logo', 'error');
+  if (updateError) return showToast('Error al guardar', 'error');
 
   negocio.logo_url = logoUrl;
-
   document.getElementById('logoImg').src = logoUrl;
   document.getElementById('logoImg').style.display = 'block';
   document.getElementById('logoPlaceholder').style.display = 'none';
   document.getElementById('removeLogoBtn').style.display = 'inline-flex';
-
   const headerLogo = document.getElementById('headerLogo');
   headerLogo.src = logoUrl;
   headerLogo.style.display = 'block';
-
   showToast('Logo actualizado');
 });
 
 document.getElementById('removeLogoBtn').addEventListener('click', async () => {
   if (!confirm('¿Quitar el logo?')) return;
-
   const { error } = await supabaseClient
     .from('negocios').update({ logo_url: null }).eq('id', negocio.id);
   if (error) return showToast('Error', 'error');
-
   negocio.logo_url = null;
   document.getElementById('logoImg').style.display = 'none';
   document.getElementById('logoPlaceholder').style.display = 'block';
   document.getElementById('removeLogoBtn').style.display = 'none';
   document.getElementById('headerLogo').style.display = 'none';
-
   showToast('Logo eliminado');
 });
 
