@@ -50,7 +50,7 @@ function showToast(msg, type = 'success') {
   toast.className = 'toast ' + type;
   toast.textContent = msg;
   document.getElementById('toastContainer').appendChild(toast);
-  setTimeout(() => toast.remove(), 3000);
+  setTimeout(() => toast.remove(), 4000);
 }
 
 async function init() {
@@ -282,11 +282,23 @@ function openBarberoModal(barbero) {
   document.getElementById('modalBarberoEmail').value = barbero ? barbero.email || '' : '';
   document.getElementById('modalBarberoPass').value = '';
 
-  const authFields = document.getElementById('authFields');
+  const emailInput = document.getElementById('modalBarberoEmail');
+  const passInput = document.getElementById('modalBarberoPass');
+
   if (barbero && barbero.auth_user_id) {
-    authFields.style.display = 'none';
+    // Barbero ya tiene cuenta: bloquear email y contraseña
+    emailInput.disabled = true;
+    passInput.disabled = true;
+    document.getElementById('emailHint').textContent = 'El barbero puede cambiar su email desde su propio panel';
+    document.getElementById('passLabel').textContent = 'Contraseña';
+    document.getElementById('passHint').textContent = 'El barbero puede cambiar su contraseña desde su propio panel';
   } else {
-    authFields.style.display = 'block';
+    // Barbero nuevo o sin cuenta aún
+    emailInput.disabled = false;
+    passInput.disabled = false;
+    document.getElementById('emailHint').textContent = 'Con este correo iniciará sesión en su panel';
+    document.getElementById('passLabel').textContent = 'Contraseña temporal';
+    document.getElementById('passHint').textContent = 'El barbero podrá cambiarla después';
   }
 
   document.getElementById('barberoModal').style.display = 'flex';
@@ -303,16 +315,78 @@ document.getElementById('barberoForm').addEventListener('submit', async (e) => {
 
   const nombre = document.getElementById('modalBarberoNombre').value.trim();
   const telefono = document.getElementById('modalBarberoTel').value.trim();
-  const email = document.getElementById('modalBarberoEmail').value.trim();
+  const email = document.getElementById('modalBarberoEmail').value.trim().toLowerCase();
   const password = document.getElementById('modalBarberoPass').value;
 
   try {
     if (editingBarberoId) {
-      await supabaseClient.from('barberos').update({ nombre, telefono }).eq('id', editingBarberoId);
+      // ===== EDITAR BARBERO =====
+      const barberoActual = barberos.find(b => b.id === editingBarberoId);
+
+      // Si ya tiene cuenta, solo actualizar nombre y teléfono
+      if (barberoActual.auth_user_id) {
+        await supabaseClient
+          .from('barberos')
+          .update({ nombre, telefono })
+          .eq('id', editingBarberoId);
+
+        showToast('Barbero actualizado');
+        document.getElementById('barberoModal').style.display = 'none';
+        loadBarberos();
+        submitBtn.disabled = false;
+        return;
+      }
+
+      // Barbero viejo sin cuenta: permitir crear cuenta ahora
+      if (email && password && password.length >= 6) {
+        const { data: currentSession } = await supabaseClient.auth.getSession();
+
+        const { data: authData, error: authError } = await supabaseClient.auth.signUp({
+          email,
+          password,
+        });
+
+        if (authError) {
+          showToast('Error al crear cuenta: ' + authError.message, 'error');
+          submitBtn.disabled = false;
+          return;
+        }
+
+        if (currentSession.session) {
+          await supabaseClient.auth.setSession({
+            access_token: currentSession.session.access_token,
+            refresh_token: currentSession.session.refresh_token,
+          });
+        }
+
+        await supabaseClient
+          .from('barberos')
+          .update({
+            nombre,
+            telefono,
+            email,
+            auth_user_id: authData.user.id
+          })
+          .eq('id', editingBarberoId);
+
+        document.getElementById('barberoModal').style.display = 'none';
+        mostrarCredenciales(nombre, email, password);
+        loadBarberos();
+        submitBtn.disabled = false;
+        return;
+      }
+
+      // Solo actualizar nombre y teléfono
+      await supabaseClient
+        .from('barberos')
+        .update({ nombre, telefono })
+        .eq('id', editingBarberoId);
+
       showToast('Barbero actualizado');
       document.getElementById('barberoModal').style.display = 'none';
       loadBarberos();
     } else {
+      // ===== CREAR BARBERO NUEVO =====
       let authUserId = null;
 
       if (email && password) {
@@ -425,7 +499,7 @@ function mostrarCredenciales(nombre, email, password) {
     <div class="cred-row"><span>Contraseña</span><span>${password}</span></div>
   `;
 
-  const mensaje = `Hola ${nombre}! Ya tienes acceso a tu panel en ${negocio.nombre}.\n\nEntra aquí: ${loginUrl}\nEmail: ${email}\nContraseña: ${password}\n\n(Puedes cambiar la contraseña después)`;
+  const mensaje = `Hola ${nombre}! Estos son tus datos de acceso a ${negocio.nombre}.\n\nEntra aquí: ${loginUrl}\nEmail: ${email}\nContraseña: ${password}\n\n(Puedes cambiar la contraseña después)`;
 
   document.getElementById('copyCredencialesBtn').onclick = () => {
     navigator.clipboard.writeText(mensaje);
