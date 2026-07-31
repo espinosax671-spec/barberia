@@ -287,7 +287,7 @@ document.getElementById('perfilForm').addEventListener('submit', async (e) => {
   const email = document.getElementById('perfilEmail').value.trim().toLowerCase();
 
   try {
-    // Actualizar nombre y teléfono en la tabla barberos
+    // Actualizar nombre y teléfono en la tabla
     const { error: updateError } = await supabaseClient
       .from('barberos')
       .update({ nombre, telefono })
@@ -305,10 +305,9 @@ document.getElementById('perfilForm').addEventListener('submit', async (e) => {
     document.getElementById('avatarInitials').textContent = getInitials(nombre);
     document.getElementById('fotoPlaceholder').textContent = getInitials(nombre);
 
-    // Si el email cambió, actualizarlo en Auth y en tabla
+    // Si el email cambió, actualizarlo directamente
     const emailAnterior = (barbero.email || '').toLowerCase();
     if (email !== emailAnterior) {
-      // Actualizar email en Supabase Auth
       const { error: authError } = await supabaseClient.auth.updateUser({ email });
 
       if (authError) {
@@ -317,23 +316,22 @@ document.getElementById('perfilForm').addEventListener('submit', async (e) => {
         return;
       }
 
-      // Actualizar email en tabla barberos
       const { error: emailError } = await supabaseClient
         .from('barberos')
         .update({ email })
         .eq('id', barbero.id);
 
       if (emailError) {
-        showToast('Email de auth cambiado pero error al guardar en tabla', 'error');
+        showToast('Error al guardar el email', 'error');
         submitBtn.disabled = false;
         return;
       }
 
       barbero.email = email;
-      showToast('Datos guardados. Revisa tu nuevo correo para confirmar el cambio de email.');
-    } else {
-      showToast('Datos guardados');
+      document.getElementById('userEmail').textContent = email;
     }
+
+    showToast('Datos actualizados');
   } catch (err) {
     console.error(err);
     showToast('Error inesperado', 'error');
