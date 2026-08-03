@@ -36,7 +36,7 @@ subdomInput.addEventListener('input', () => {
 });
 
 // Función para redirigir según tipo de usuario
-async function redirectByUserType(userId) {
+async function redirectByUserType(userId, showError = null) {
   // Verificar si es dueño
   const { data: negocio } = await supabaseClient
     .from('negocios')
@@ -61,8 +61,25 @@ async function redirectByUserType(userId) {
     return;
   }
 
-  // No es dueño ni barbero, ir a activar
-  window.location.href = 'confirmar.html';
+  // Verificar si es un usuario reciente con metadata (dueño registrándose)
+  const { data: userData } = await supabaseClient.auth.getUser();
+  const meta = userData?.user?.user_metadata || {};
+
+  if (meta.nombre_negocio && meta.subdominio) {
+    // Es un dueño que acaba de registrarse
+    window.location.href = 'confirmar.html';
+    return;
+  }
+
+  // No es dueño ni barbero ni tiene registro pendiente
+  // Cerrar sesión y mostrar error
+  await supabaseClient.auth.signOut();
+
+  if (showError) {
+    showError('Esta cuenta no tiene acceso al sistema. Contacta al administrador de tu barbería.');
+  } else {
+    alert('Esta cuenta no tiene acceso al sistema. Contacta al administrador de tu barbería.');
+  }
 }
 
 // Verificar sesión activa
@@ -94,7 +111,12 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
   msg.textContent = '¡Bienvenido! Cargando...';
   msg.className = 'form-msg ok';
 
-  setTimeout(() => redirectByUserType(data.user.id), 600);
+  setTimeout(() => {
+    redirectByUserType(data.user.id, (errorMsg) => {
+      msg.textContent = errorMsg;
+      msg.className = 'form-msg error';
+    });
+  }, 600);
 });
 
 // REGISTRO
