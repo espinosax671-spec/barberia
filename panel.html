@@ -197,17 +197,15 @@
         <label for="modalBarberoTel">Teléfono (opcional)</label>
         <input type="tel" id="modalBarberoTel" placeholder="3000000000">
       </div>
-      <div id="authFields">
-        <div class="field">
-          <label for="modalBarberoEmail">Email del barbero</label>
-          <input type="email" id="modalBarberoEmail" placeholder="barbero@correo.com">
-          <span class="field-hint">Con este correo iniciará sesión en su panel</span>
-        </div>
-        <div class="field">
-          <label for="modalBarberoPass">Contraseña temporal</label>
-          <input type="text" id="modalBarberoPass" placeholder="Mínimo 6 caracteres" minlength="6">
-          <span class="field-hint">El barbero podrá cambiarla después</span>
-        </div>
+      <div class="field">
+        <label for="modalBarberoEmail">Email del barbero</label>
+        <input type="email" id="modalBarberoEmail" placeholder="barbero@correo.com">
+        <span class="field-hint" id="emailHint">Con este correo iniciará sesión en su panel</span>
+      </div>
+      <div class="field">
+        <label for="modalBarberoPass" id="passLabel">Contraseña temporal</label>
+        <input type="text" id="modalBarberoPass" placeholder="Mínimo 6 caracteres" minlength="6">
+        <span class="field-hint" id="passHint">El barbero podrá cambiarla después</span>
       </div>
       <div class="modal-actions">
         <button type="button" class="btn btn-ghost" id="cancelBarberoBtn">Cancelar</button>
@@ -220,7 +218,7 @@
 <!-- Modal credenciales -->
 <div id="credencialesModal" class="modal-overlay" style="display:none;">
   <div class="modal">
-    <h2>Barbero creado</h2>
+    <h2>Credenciales del barbero</h2>
     <p style="color: var(--gray-500); margin-bottom: 20px;">
       Comparte estos datos con tu barbero para que pueda acceder a su panel:
     </p>
@@ -252,7 +250,6 @@
       <button class="stats-filter" data-period="30dias">Últimos 30 días</button>
     </div>
 
-    <!-- KPIs -->
     <div class="stats-kpis">
       <div class="kpi-card kpi-money">
         <div class="kpi-icon-svg">
@@ -309,7 +306,6 @@
       </div>
     </div>
 
-    <!-- Gráfica citas por día -->
     <div class="stats-chart-card">
       <h3>Citas por día (últimos 7 días)</h3>
       <div class="chart-container">
@@ -322,17 +318,14 @@
         <h3>Top barberos</h3>
         <div class="ranking-list" id="rankingBarberos"></div>
       </div>
-
       <div class="stats-card">
         <h3>Servicios más pedidos</h3>
         <div class="ranking-list" id="rankingServicios"></div>
       </div>
-
       <div class="stats-card">
         <h3>Horas más solicitadas</h3>
         <div class="ranking-list" id="rankingHoras"></div>
       </div>
-
       <div class="stats-card">
         <h3>Estado de citas</h3>
         <div class="chart-container-small">
