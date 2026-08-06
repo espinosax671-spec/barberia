@@ -8,6 +8,17 @@
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="login.css">
+
+<!-- PWA -->
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#16294f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="CitaBarber">
+<link rel="apple-touch-icon" href="/iconos/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/iconos/icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="/iconos/icon-512.png">
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="auth-body">
@@ -162,5 +173,17 @@
 
 <script src="config.js"></script>
 <script src="login.js"></script>
+
+<!-- Service Worker -->
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(reg => console.log('SW registrado:', reg.scope))
+      .catch(err => console.error('SW error:', err));
+  });
+}
+</script>
+
 </body>
 </html>
