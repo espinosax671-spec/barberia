@@ -1,1 +1,56 @@
-
+{
+  "name": "CitaBarber — Panel",
+  "short_name": "CitaBarber",
+  "description": "Sistema de agendamiento de citas para barberías",
+  "start_url": "/login.html",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#16294f",
+  "orientation": "portrait-primary",
+  "lang": "es",
+  "dir": "ltr",
+  "categories": ["business", "productivity", "lifestyle"],
+  "icons": [
+    {
+      "src": "iconos/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "iconos/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "iconos/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "iconos/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Mi Panel",
+      "short_name": "Panel",
+      "description": "Acceder al panel de administración",
+      "url": "/panel.html",
+      "icons": [{ "src": "iconos/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Mi Agenda",
+      "short_name": "Agenda",
+      "description": "Ver mi agenda de citas",
+      "url": "/mi-agenda.html",
+      "icons": [{ "src": "iconos/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}
