@@ -2,6 +2,7 @@ let negocio = null;
 let barberos = [];
 let servicios = [];
 let horarios = [];
+let barberoFestivosActivos = [];
 
 let selectedBarbero = null;
 let selectedServicio = null;
@@ -9,7 +10,7 @@ let selectedDate = null;
 let selectedTime = null;
 
 const DIAS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-const DOW_LABELS = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'];
+const DOW_LABELS = ['DOM', 'LUN', 'MAR', 'MIE', 'JUE', 'VIE', 'SAB'];
 const SLOT_STEP = 30;
 
 function formatCOP(n) { return '$' + n.toLocaleString('es-CO'); }
@@ -31,6 +32,117 @@ function getInitials(name) {
   return name.split(' ').filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('');
 }
 
+// ============================================
+// FESTIVOS COLOMBIA
+// ============================================
+function calcularPascua(anio) {
+  const a = anio % 19;
+  const b = Math.floor(anio / 100);
+  const c = anio % 100;
+  const d = Math.floor(b / 4);
+  const e = b % 4;
+  const f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4);
+  const k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7;
+  const m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const mes = Math.floor((h + l - 7 * m + 114) / 31);
+  const dia = ((h + l - 7 * m + 114) % 31) + 1;
+  return new Date(anio, mes - 1, dia);
+}
+
+function getFestivosColombiaAnio(anio) {
+  const festivos = [];
+
+  const fijos = [
+    [1, 1],
+    [5, 1],
+    [7, 20],
+    [8, 7],
+    [12, 8],
+    [12, 25],
+  ];
+  fijos.forEach(([m, d]) => festivos.push(new Date(anio, m - 1, d)));
+
+  const emiliani = [
+    [1, 6],
+    [3, 19],
+    [6, 29],
+    [8, 15],
+    [10, 12],
+    [11, 1],
+    [11, 11],
+  ];
+  emiliani.forEach(([m, d]) => {
+    const fecha = new Date(anio, m - 1, d);
+    const dow = fecha.getDay();
+    if (dow !== 1) {
+      const diff = dow === 0 ? 1 : 8 - dow;
+      fecha.setDate(fecha.getDate() + diff);
+    }
+    festivos.push(fecha);
+  });
+
+  const pascua = calcularPascua(anio);
+  const juevesSanto = new Date(pascua);
+  juevesSanto.setDate(pascua.getDate() - 3);
+  const viernesSanto = new Date(pascua);
+  viernesSanto.setDate(pascua.getDate() - 2);
+  festivos.push(juevesSanto);
+  festivos.push(viernesSanto);
+
+  [39, 60, 68].forEach(offset => {
+    const f = new Date(pascua);
+    f.setDate(pascua.getDate() + offset);
+    const dow = f.getDay();
+    if (dow !== 1) {
+      const diff = dow === 0 ? 1 : 8 - dow;
+      f.setDate(f.getDate() + diff);
+    }
+    festivos.push(f);
+  });
+
+  return festivos;
+}
+
+function getFestivosSet(anios) {
+  const set = new Set();
+  anios.forEach(anio => {
+    getFestivosColombiaAnio(anio).forEach(f => set.add(dateKey(f)));
+  });
+  return set;
+}
+
+function getNombreFestivo(fecha) {
+  const mesdia = dateKey(fecha).slice(5);
+  const nombres = {
+    '01-01': 'Año Nuevo',
+    '05-01': 'Dia del Trabajo',
+    '07-20': 'Independencia',
+    '08-07': 'Batalla de Boyaca',
+    '12-08': 'Inmaculada Concepcion',
+    '12-25': 'Navidad',
+    '01-06': 'Reyes Magos',
+    '03-19': 'San Jose',
+    '06-29': 'San Pedro y San Pablo',
+    '08-15': 'Asuncion',
+    '10-12': 'Dia de la Raza',
+    '11-01': 'Todos los Santos',
+    '11-11': 'Independencia de Cartagena',
+  };
+  return nombres[mesdia] || 'Festivo';
+}
+
+const FESTIVOS_SET = getFestivosSet([
+  new Date().getFullYear(),
+  new Date().getFullYear() + 1,
+]);
+
+// ============================================
+// INIT
+// ============================================
 async function init() {
   const params = new URLSearchParams(window.location.search);
   const subdominio = params.get('b');
@@ -43,15 +155,14 @@ async function init() {
   if (error || !negocioData) { showNotFound(); return; }
 
   negocio = negocioData;
-  document.title = `Agendar cita — ${negocio.nombre}`;
+  document.title = `Agendar cita - ${negocio.nombre}`;
 
   document.getElementById('heroNombre').textContent = negocio.nombre;
-  document.getElementById('heroCiudad').textContent = negocio.ciudad || 'Barbería';
+  document.getElementById('heroCiudad').textContent = negocio.ciudad || 'Barberia';
   document.getElementById('heroDescripcion').textContent =
     negocio.descripcion || 'Reserva tu cita en pocos clics.';
   document.getElementById('successNombreNegocio').textContent = negocio.nombre;
 
-  // Mostrar logo si existe
   if (negocio.logo_url) {
     const heroLogo = document.getElementById('heroLogo');
     heroLogo.src = negocio.logo_url;
@@ -59,7 +170,7 @@ async function init() {
   }
 
   document.getElementById('infoDireccion').textContent =
-    negocio.direccion || 'Sin dirección registrada';
+    negocio.direccion || 'Sin direccion registrada';
   document.getElementById('infoCiudad').textContent = negocio.ciudad || '';
   if (negocio.telefono_whatsapp) {
     document.getElementById('infoTelefono').innerHTML =
@@ -84,10 +195,13 @@ function showNotFound() {
   document.getElementById('notFoundView').style.display = 'flex';
 }
 
+// ============================================
+// BARBEROS
+// ============================================
 function renderBarberos() {
   const grid = document.getElementById('barberosGrid');
   if (!barberos.length) {
-    grid.innerHTML = '<p class="hint">Esta barbería aún no tiene barberos disponibles.</p>';
+    grid.innerHTML = '<p class="hint">Esta barberia aun no tiene barberos disponibles.</p>';
     return;
   }
   grid.innerHTML = '';
@@ -111,16 +225,21 @@ async function selectBarbero(b) {
   selectedTime = null;
   renderBarberos();
 
-  const [serviciosRes, horariosRes] = await Promise.all([
+  const [serviciosRes, horariosRes, festivosRes] = await Promise.all([
     supabaseClient.from('servicios').select('*')
       .eq('negocio_id', negocio.id).eq('barbero_id', b.id).eq('activo', true)
       .order('orden', { ascending: true }),
     supabaseClient.from('horarios').select('*')
       .eq('negocio_id', negocio.id).eq('barbero_id', b.id),
+    supabaseClient.from('barbero_festivos').select('*')
+      .eq('barbero_id', b.id)
+      .eq('cerrado', true)
+      .gte('fecha', dateKey(new Date())),
   ]);
 
   servicios = serviciosRes.data || [];
   horarios = horariosRes.data || [];
+  barberoFestivosActivos = festivosRes.data || [];
 
   renderServicios();
   renderFechas();
@@ -129,10 +248,19 @@ async function selectBarbero(b) {
   updateSummary();
 }
 
+// ============================================
+// SERVICIOS
+// ============================================
 function renderServicios() {
   const grid = document.getElementById('serviciosGrid');
-  if (!selectedBarbero) { grid.innerHTML = '<p class="hint">Selecciona primero un barbero.</p>'; return; }
-  if (!servicios.length) { grid.innerHTML = '<p class="hint">Este barbero no tiene servicios disponibles.</p>'; return; }
+  if (!selectedBarbero) {
+    grid.innerHTML = '<p class="hint">Selecciona primero un barbero.</p>';
+    return;
+  }
+  if (!servicios.length) {
+    grid.innerHTML = '<p class="hint">Este barbero no tiene servicios disponibles.</p>';
+    return;
+  }
   grid.innerHTML = '';
   servicios.forEach(s => {
     const btn = document.createElement('button');
@@ -156,9 +284,15 @@ function renderServicios() {
   });
 }
 
+// ============================================
+// FECHAS
+// ============================================
 function renderFechas() {
   const scroll = document.getElementById('fechasScroll');
-  if (!selectedBarbero) { scroll.innerHTML = '<p class="hint">Selecciona primero un barbero.</p>'; return; }
+  if (!selectedBarbero) {
+    scroll.innerHTML = '<p class="hint">Selecciona primero un barbero.</p>';
+    return;
+  }
 
   scroll.innerHTML = '';
   const today = new Date();
@@ -167,33 +301,75 @@ function renderFechas() {
   const horariosPorDia = {};
   horarios.forEach(h => { horariosPorDia[h.dia_semana] = h; });
 
-  for (let i = 0; i < 14; i++) {
+  const festivosBloqueados = new Set(
+    (barberoFestivosActivos || []).map(f => f.fecha)
+  );
+
+  let diasMostrados = 0;
+
+  for (let i = 0; i < 60; i++) {
     const d = new Date(today);
     d.setDate(d.getDate() + i);
     const dow = d.getDay();
     const hDia = horariosPorDia[dow];
+
     if (!hDia || hDia.abre_minuto === null) continue;
+
+    const keyFecha = dateKey(d);
+    const esFestivoColombia = FESTIVOS_SET.has(keyFecha);
+    const estaBloqueado = festivosBloqueados.has(keyFecha);
 
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.className = 'fecha-option' +
-      (selectedDate && dateKey(selectedDate) === dateKey(d) ? ' selected' : '');
-    btn.innerHTML = `
-      <span class="dow">${DOW_LABELS[dow]}</span>
-      <span class="dnum">${d.getDate()}</span>
-    `;
-    btn.addEventListener('click', () => {
-      selectedDate = d;
-      selectedTime = null;
-      renderFechas();
-      renderHoras();
-      updateSummary();
-    });
-    scroll.appendChild(btn);
+
+    if (esFestivoColombia && estaBloqueado) {
+      btn.className = 'fecha-option festivo-cerrado';
+      btn.disabled = true;
+      btn.innerHTML = `
+        <span class="dow">${DOW_LABELS[dow]}</span>
+        <span class="dnum">${d.getDate()}</span>
+        <span class="festivo-tag">Festivo</span>
+      `;
+      btn.title = getNombreFestivo(d) + ' - Cerrado';
+      scroll.appendChild(btn);
+      diasMostrados++;
+    } else {
+      btn.className = 'fecha-option' +
+        (selectedDate && dateKey(selectedDate) === keyFecha ? ' selected' : '') +
+        (esFestivoColombia ? ' es-festivo' : '');
+
+      btn.innerHTML = `
+        <span class="dow">${DOW_LABELS[dow]}</span>
+        <span class="dnum">${d.getDate()}</span>
+        ${esFestivoColombia ? '<span class="festivo-tag">Festivo</span>' : ''}
+      `;
+
+      if (esFestivoColombia) {
+        btn.title = getNombreFestivo(d) + ' - Abierto';
+      }
+
+      btn.addEventListener('click', () => {
+        selectedDate = d;
+        selectedTime = null;
+        renderFechas();
+        renderHoras();
+        updateSummary();
+      });
+      scroll.appendChild(btn);
+      diasMostrados++;
+    }
+
+    if (diasMostrados >= 14) break;
   }
-  if (!scroll.children.length) scroll.innerHTML = '<p class="hint">Este barbero no tiene días disponibles.</p>';
+
+  if (!scroll.children.length) {
+    scroll.innerHTML = '<p class="hint">Este barbero no tiene dias disponibles.</p>';
+  }
 }
 
+// ============================================
+// HORAS
+// ============================================
 async function renderHoras() {
   const grid = document.getElementById('horasGrid');
   if (!selectedServicio || !selectedDate) {
@@ -202,7 +378,10 @@ async function renderHoras() {
   }
   const dow = selectedDate.getDay();
   const hDia = horarios.find(h => h.dia_semana === dow);
-  if (!hDia || hDia.abre_minuto === null) { grid.innerHTML = '<p class="hint">Cerrado ese día.</p>'; return; }
+  if (!hDia || hDia.abre_minuto === null) {
+    grid.innerHTML = '<p class="hint">Cerrado ese dia.</p>';
+    return;
+  }
 
   grid.innerHTML = '<p class="hint">Cargando horarios...</p>';
 
@@ -263,9 +442,15 @@ function crearBotonHora(t, duration, citas, isToday, nowMinutes) {
   return btn;
 }
 
+// ============================================
+// HORARIO LISTA
+// ============================================
 function renderHorarioLista() {
   const list = document.getElementById('horarioLista');
-  if (!horarios.length) { list.innerHTML = '<li>Sin horario configurado</li>'; return; }
+  if (!horarios.length) {
+    list.innerHTML = '<li>Sin horario configurado</li>';
+    return;
+  }
   const orden = [1, 2, 3, 4, 5, 6, 0];
   list.innerHTML = '';
   orden.forEach(dow => {
@@ -276,9 +461,9 @@ function renderHorarioLista() {
       li.className = 'cerrado';
       li.innerHTML = `<span>${DIAS[dow]}</span><span>Cerrado</span>`;
     } else {
-      let horarioTxt = `${minutesToLabel(h.abre_minuto)} – ${minutesToLabel(h.cierra_minuto)}`;
+      let horarioTxt = `${minutesToLabel(h.abre_minuto)} - ${minutesToLabel(h.cierra_minuto)}`;
       if (h.abre_minuto_tarde !== null && h.cierra_minuto_tarde !== null) {
-        horarioTxt += ` · ${minutesToLabel(h.abre_minuto_tarde)} – ${minutesToLabel(h.cierra_minuto_tarde)}`;
+        horarioTxt += ` · ${minutesToLabel(h.abre_minuto_tarde)} - ${minutesToLabel(h.cierra_minuto_tarde)}`;
       }
       li.innerHTML = `<span>${DIAS[dow]}</span><span>${horarioTxt}</span>`;
     }
@@ -286,6 +471,9 @@ function renderHorarioLista() {
   });
 }
 
+// ============================================
+// RESUMEN
+// ============================================
 function updateSummary() {
   const box = document.getElementById('bookingSummary');
   if (!selectedBarbero || !selectedServicio || !selectedDate || selectedTime === null) {
@@ -303,10 +491,14 @@ function updateSummary() {
   `;
 }
 
+// ============================================
+// FORMULARIO RESERVA
+// ============================================
 document.getElementById('reservaForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const msg = document.getElementById('formMsg');
-  msg.className = 'form-msg'; msg.textContent = '';
+  msg.className = 'form-msg';
+  msg.textContent = '';
 
   if (!selectedBarbero || !selectedServicio || !selectedDate || selectedTime === null) {
     msg.textContent = 'Por favor completa todos los pasos.';
@@ -318,7 +510,7 @@ document.getElementById('reservaForm').addEventListener('submit', async (e) => {
   const phone = document.getElementById('clientPhone').value.trim();
 
   if (!name || !phone) {
-    msg.textContent = 'Completa tu nombre y teléfono.';
+    msg.textContent = 'Completa tu nombre y telefono.';
     msg.className = 'form-msg error';
     return;
   }
@@ -340,7 +532,7 @@ document.getElementById('reservaForm').addEventListener('submit', async (e) => {
   );
 
   if (conflict) {
-    msg.textContent = 'Ese horario ya no está disponible. Elige otro.';
+    msg.textContent = 'Ese horario ya no esta disponible. Elige otro.';
     msg.className = 'form-msg error';
     submitBtn.disabled = false;
     selectedTime = null;
@@ -383,7 +575,7 @@ function showSuccess(name) {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
   });
 
-  document.getElementById('successTitulo').textContent = `¡Listo ${name}, tu cita está confirmada!`;
+  document.getElementById('successTitulo').textContent = `Listo ${name}, tu cita esta confirmada!`;
   document.getElementById('successDetail').innerHTML = `
     <div class="success-detail-row"><span>Barbero</span><span>${selectedBarbero.nombre}</span></div>
     <div class="success-detail-row"><span>Servicio</span><span>${selectedServicio.nombre}</span></div>
