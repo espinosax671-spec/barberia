@@ -2,11 +2,34 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CitaBarber</title>
+
+<!-- PWA -->
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#16294f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="CitaBarber">
+<link rel="apple-touch-icon" href="/iconos/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/iconos/icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="/iconos/icon-512.png">
+
 <meta http-equiv="refresh" content="0; url=login.html">
 <script>window.location.href = 'login.html';</script>
 </head>
 <body>
   <p>Redirigiendo a <a href="login.html">login</a>...</p>
+
+<!-- Service Worker -->
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(reg => console.log('✅ SW registrado:', reg.scope))
+      .catch(err => console.error('❌ SW error:', err));
+  });
+}
+</script>
 </body>
 </html>
