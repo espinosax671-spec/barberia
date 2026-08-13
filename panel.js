@@ -32,8 +32,14 @@ function getInitials(name) {
 function todayStr() {
   return new Date().toISOString().slice(0, 10);
 }
+function dateKey(d) {
+  const yyyy = d.getFullYear();
+  const mm = (d.getMonth() + 1).toString().padStart(2, '0');
+  const dd = d.getDate().toString().padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
 
-const DIAS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+const DIAS = ['Domingo', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado'];
 
 const HORARIOS_DEFAULT = [
   { dia_semana: 0, abre_minuto: null, cierra_minuto: null, abre_minuto_tarde: null, cierra_minuto_tarde: null },
@@ -45,6 +51,104 @@ const HORARIOS_DEFAULT = [
   { dia_semana: 6, abre_minuto: 480, cierra_minuto: 1020, abre_minuto_tarde: null, cierra_minuto_tarde: null },
 ];
 
+// ============================================
+// FESTIVOS COLOMBIA
+// ============================================
+function calcularPascua(anio) {
+  const a = anio % 19;
+  const b = Math.floor(anio / 100);
+  const c = anio % 100;
+  const d = Math.floor(b / 4);
+  const e = b % 4;
+  const f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4);
+  const k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7;
+  const m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const mes = Math.floor((h + l - 7 * m + 114) / 31);
+  const dia = ((h + l - 7 * m + 114) % 31) + 1;
+  return new Date(anio, mes - 1, dia);
+}
+
+function getFestivosColombiaAnio(anio) {
+  const festivos = [];
+
+  const fijos = [
+    [1, 1],
+    [5, 1],
+    [7, 20],
+    [8, 7],
+    [12, 8],
+    [12, 25],
+  ];
+  fijos.forEach(([m, d]) => festivos.push(new Date(anio, m - 1, d)));
+
+  const emiliani = [
+    [1, 6],
+    [3, 19],
+    [6, 29],
+    [8, 15],
+    [10, 12],
+    [11, 1],
+    [11, 11],
+  ];
+  emiliani.forEach(([m, d]) => {
+    const fecha = new Date(anio, m - 1, d);
+    const dow = fecha.getDay();
+    if (dow !== 1) {
+      const diff = dow === 0 ? 1 : 8 - dow;
+      fecha.setDate(fecha.getDate() + diff);
+    }
+    festivos.push(fecha);
+  });
+
+  const pascua = calcularPascua(anio);
+  const juevesSanto = new Date(pascua);
+  juevesSanto.setDate(pascua.getDate() - 3);
+  const viernesSanto = new Date(pascua);
+  viernesSanto.setDate(pascua.getDate() - 2);
+  festivos.push(juevesSanto);
+  festivos.push(viernesSanto);
+
+  [39, 60, 68].forEach(offset => {
+    const f = new Date(pascua);
+    f.setDate(pascua.getDate() + offset);
+    const dow = f.getDay();
+    if (dow !== 1) {
+      const diff = dow === 0 ? 1 : 8 - dow;
+      f.setDate(f.getDate() + diff);
+    }
+    festivos.push(f);
+  });
+
+  return festivos;
+}
+
+function getNombreFestivo(fecha) {
+  const mesdia = dateKey(fecha).slice(5);
+  const nombres = {
+    '01-01': 'Año Nuevo',
+    '05-01': 'Dia del Trabajo',
+    '07-20': 'Independencia',
+    '08-07': 'Batalla de Boyaca',
+    '12-08': 'Inmaculada Concepcion',
+    '12-25': 'Navidad',
+    '01-06': 'Reyes Magos',
+    '03-19': 'San Jose',
+    '06-29': 'San Pedro y San Pablo',
+    '08-15': 'Asuncion',
+    '10-12': 'Dia de la Raza',
+    '11-01': 'Todos los Santos',
+    '11-11': 'Independencia de Cartagena',
+  };
+  return nombres[mesdia] || 'Festivo';
+}
+
+// ============================================
+// TOAST
+// ============================================
 function showToast(msg, type = 'success') {
   const toast = document.createElement('div');
   toast.className = 'toast ' + type;
@@ -53,6 +157,9 @@ function showToast(msg, type = 'success') {
   setTimeout(() => toast.remove(), 4000);
 }
 
+// ============================================
+// INIT
+// ============================================
 async function init() {
   const { data: sessionData } = await supabaseClient.auth.getSession();
   if (!sessionData.session) {
@@ -70,7 +177,7 @@ async function init() {
     .maybeSingle();
 
   if (error || !negocioData) {
-    alert('No encontramos tu negocio. Serás redirigido al login.');
+    alert('No encontramos tu negocio. Seras redirigido al login.');
     await supabaseClient.auth.signOut();
     window.location.href = 'login.html';
     return;
@@ -93,7 +200,7 @@ async function init() {
   const tiendaUrl = `${APP_BASE_URL}/reservar.html?b=${negocio.subdominio}`;
   document.getElementById('tiendaUrl').textContent = tiendaUrl.replace(/^https?:\/\//, '');
   document.getElementById('viewShopBtn').href = tiendaUrl;
-  const shareMsg = encodeURIComponent(`¡Agenda tu cita en ${negocio.nombre}!\n${tiendaUrl}`);
+  const shareMsg = encodeURIComponent(`Agenda tu cita en ${negocio.nombre}!\n${tiendaUrl}`);
   document.getElementById('shareWhatsappBtn').href = `https://wa.me/?text=${shareMsg}`;
 
   document.getElementById('copyUrlBtn').addEventListener('click', () => {
@@ -112,6 +219,9 @@ async function init() {
   initRealtime();
 }
 
+// ============================================
+// REALTIME
+// ============================================
 function initRealtime() {
   supabaseClient
     .channel('citas-' + negocio.id)
@@ -181,6 +291,9 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
   });
 });
 
+// ============================================
+// BARBEROS
+// ============================================
 async function loadBarberos() {
   const { data, error } = await supabaseClient
     .from('barberos').select('*')
@@ -222,7 +335,7 @@ function renderBarberosList() {
       ${avatarHtml}
       <div class="barbero-card-info">
         <strong>${b.nombre}</strong>
-        <span>${b.telefono || 'Sin teléfono'}</span>
+        <span>${b.telefono || 'Sin telefono'}</span>
         ${b.email ? `<span class="barbero-email">${b.email}</span>` : ''}
       </div>
       <div class="barbero-card-actions">
@@ -237,7 +350,7 @@ function renderBarberosList() {
       loadBarberos();
     });
     card.querySelector('.delete-btn').addEventListener('click', async () => {
-      if (!confirm(`¿Eliminar al barbero "${b.nombre}"? Se borrarán también sus horarios y servicios.`)) return;
+      if (!confirm(`Eliminar al barbero "${b.nombre}"? Se borraran tambien sus horarios y servicios.`)) return;
       await supabaseClient.from('barberos').delete().eq('id', b.id);
       showToast('Barbero eliminado');
       loadBarberos();
@@ -254,7 +367,9 @@ function renderBarberosSelectors() {
       const chip = document.createElement('button');
       chip.className = 'barbero-chip';
       chip.textContent = b.nombre;
-      const activeId = selectorId === 'serviciosBarberoSelector' ? currentBarberoServicios : currentBarberoHorarios;
+      const activeId = selectorId === 'serviciosBarberoSelector'
+        ? currentBarberoServicios
+        : currentBarberoHorarios;
       if (b.id === activeId) chip.classList.add('active');
       chip.addEventListener('click', () => {
         if (selectorId === 'serviciosBarberoSelector') {
@@ -286,19 +401,17 @@ function openBarberoModal(barbero) {
   const passInput = document.getElementById('modalBarberoPass');
 
   if (barbero && barbero.auth_user_id) {
-    // Barbero ya tiene cuenta: bloquear email y contraseña
     emailInput.disabled = true;
     passInput.disabled = true;
     document.getElementById('emailHint').textContent = 'El barbero puede cambiar su email desde su propio panel';
-    document.getElementById('passLabel').textContent = 'Contraseña';
-    document.getElementById('passHint').textContent = 'El barbero puede cambiar su contraseña desde su propio panel';
+    document.getElementById('passLabel').textContent = 'Contrasena';
+    document.getElementById('passHint').textContent = 'El barbero puede cambiar su contrasena desde su propio panel';
   } else {
-    // Barbero nuevo o sin cuenta aún
     emailInput.disabled = false;
     passInput.disabled = false;
-    document.getElementById('emailHint').textContent = 'Con este correo iniciará sesión en su panel';
-    document.getElementById('passLabel').textContent = 'Contraseña temporal';
-    document.getElementById('passHint').textContent = 'El barbero podrá cambiarla después';
+    document.getElementById('emailHint').textContent = 'Con este correo iniciara sesion en su panel';
+    document.getElementById('passLabel').textContent = 'Contrasena temporal';
+    document.getElementById('passHint').textContent = 'El barbero podra cambiarla despues';
   }
 
   document.getElementById('barberoModal').style.display = 'flex';
@@ -320,10 +433,8 @@ document.getElementById('barberoForm').addEventListener('submit', async (e) => {
 
   try {
     if (editingBarberoId) {
-      // ===== EDITAR BARBERO =====
       const barberoActual = barberos.find(b => b.id === editingBarberoId);
 
-      // Si ya tiene cuenta, solo actualizar nombre y teléfono
       if (barberoActual.auth_user_id) {
         await supabaseClient
           .from('barberos')
@@ -337,7 +448,6 @@ document.getElementById('barberoForm').addEventListener('submit', async (e) => {
         return;
       }
 
-      // Barbero viejo sin cuenta: permitir crear cuenta ahora
       if (email && password && password.length >= 6) {
         const { data: currentSession } = await supabaseClient.auth.getSession();
 
@@ -361,12 +471,7 @@ document.getElementById('barberoForm').addEventListener('submit', async (e) => {
 
         await supabaseClient
           .from('barberos')
-          .update({
-            nombre,
-            telefono,
-            email,
-            auth_user_id: authData.user.id
-          })
+          .update({ nombre, telefono, email, auth_user_id: authData.user.id })
           .eq('id', editingBarberoId);
 
         document.getElementById('barberoModal').style.display = 'none';
@@ -376,7 +481,6 @@ document.getElementById('barberoForm').addEventListener('submit', async (e) => {
         return;
       }
 
-      // Solo actualizar nombre y teléfono
       await supabaseClient
         .from('barberos')
         .update({ nombre, telefono })
@@ -386,12 +490,11 @@ document.getElementById('barberoForm').addEventListener('submit', async (e) => {
       document.getElementById('barberoModal').style.display = 'none';
       loadBarberos();
     } else {
-      // ===== CREAR BARBERO NUEVO =====
       let authUserId = null;
 
       if (email && password) {
         if (password.length < 6) {
-          showToast('La contraseña debe tener al menos 6 caracteres', 'error');
+          showToast('La contrasena debe tener al menos 6 caracteres', 'error');
           submitBtn.disabled = false;
           return;
         }
@@ -438,10 +541,10 @@ document.getElementById('barberoForm').addEventListener('submit', async (e) => {
         return;
       }
 
-      const horarios = HORARIOS_DEFAULT.map(h => ({
+      const horariosDefault = HORARIOS_DEFAULT.map(h => ({
         ...h, negocio_id: negocio.id, barbero_id: nuevoBarbero.id,
       }));
-      await supabaseClient.from('horarios').insert(horarios);
+      await supabaseClient.from('horarios').insert(horariosDefault);
 
       let serviciosBase = [];
       if (barberos.length > 0) {
@@ -457,11 +560,11 @@ document.getElementById('barberoForm').addEventListener('submit', async (e) => {
 
       if (serviciosBase.length === 0) {
         serviciosBase = [
-          { nombre: 'Corte clásico',       precio: 25000, duracion_min: 30, orden: 1 },
+          { nombre: 'Corte clasico',       precio: 25000, duracion_min: 30, orden: 1 },
           { nombre: 'Arreglo de barba',    precio: 18000, duracion_min: 20, orden: 2 },
           { nombre: 'Combo corte + barba', precio: 38000, duracion_min: 50, orden: 3 },
-          { nombre: 'Afeitado clásico',    precio: 22000, duracion_min: 25, orden: 4 },
-          { nombre: 'Corte niño',          precio: 18000, duracion_min: 25, orden: 5 },
+          { nombre: 'Afeitado clasico',    precio: 22000, duracion_min: 25, orden: 4 },
+          { nombre: 'Corte nino',          precio: 18000, duracion_min: 25, orden: 5 },
         ];
       }
 
@@ -496,10 +599,10 @@ function mostrarCredenciales(nombre, email, password) {
     <div class="cred-row"><span>Nombre</span><span>${nombre}</span></div>
     <div class="cred-row"><span>Link</span><span>${loginUrl}</span></div>
     <div class="cred-row"><span>Email</span><span>${email}</span></div>
-    <div class="cred-row"><span>Contraseña</span><span>${password}</span></div>
+    <div class="cred-row"><span>Contrasena</span><span>${password}</span></div>
   `;
 
-  const mensaje = `Hola ${nombre}! Estos son tus datos de acceso a ${negocio.nombre}.\n\nEntra aquí: ${loginUrl}\nEmail: ${email}\nContraseña: ${password}\n\n(Puedes cambiar la contraseña después)`;
+  const mensaje = `Hola ${nombre}! Estos son tus datos de acceso a ${negocio.nombre}.\n\nEntra aqui: ${loginUrl}\nEmail: ${email}\nContrasena: ${password}\n\n(Puedes cambiar la contrasena despues)`;
 
   document.getElementById('copyCredencialesBtn').onclick = () => {
     navigator.clipboard.writeText(mensaje);
@@ -513,6 +616,9 @@ function mostrarCredenciales(nombre, email, password) {
   document.getElementById('credencialesModal').style.display = 'flex';
 }
 
+// ============================================
+// CITAS
+// ============================================
 async function loadCitas() {
   const { data, error } = await supabaseClient
     .from('citas').select('*, barberos(nombre)')
@@ -555,7 +661,7 @@ function renderCitas() {
           <path d="M16 2v4M8 2v4M3 10h18"/>
         </svg>
         <h3>No hay citas en esta vista</h3>
-        <p>Cuando alguien reserve una cita, aparecerá aquí.</p>
+        <p>Cuando alguien reserve una cita, aparecera aqui.</p>
       </div>`;
     return;
   }
@@ -609,6 +715,9 @@ document.getElementById('citasFilterBar').addEventListener('click', (e) => {
   renderCitas();
 });
 
+// ============================================
+// SERVICIOS
+// ============================================
 async function loadServicios() {
   if (!currentBarberoServicios) return;
   renderBarberosSelectors();
@@ -657,7 +766,7 @@ function renderServicioRow(s) {
     loadServicios();
   });
   row.querySelector('.delete-btn').addEventListener('click', async () => {
-    if (!confirm(`¿Eliminar "${s.nombre}"?`)) return;
+    if (!confirm(`Eliminar "${s.nombre}"?`)) return;
     await supabaseClient.from('servicios').delete().eq('id', s.id);
     showToast('Servicio eliminado');
     loadServicios();
@@ -674,6 +783,9 @@ document.getElementById('addServicioBtn').addEventListener('click', async () => 
   loadServicios();
 });
 
+// ============================================
+// HORARIOS
+// ============================================
 async function loadHorarios() {
   if (!currentBarberoHorarios) return;
   renderBarberosSelectors();
@@ -688,6 +800,7 @@ async function loadHorarios() {
   if (error) { list.innerHTML = '<p class="hint">Error.</p>'; return; }
 
   list.innerHTML = '';
+
   data.forEach(h => {
     const abierto = h.abre_minuto !== null;
     const tieneTarde = h.abre_minuto_tarde !== null;
@@ -701,13 +814,13 @@ async function loadHorarios() {
       </div>
       <div class="horario-turnos" ${abierto ? '' : 'style="display:none;"'}>
         <div class="turno">
-          <span class="turno-label">Mañana</span>
+          <span class="turno-label">Manana</span>
           <label>Desde <input type="time" class="abre-input" value="${minutesToHHMM(h.abre_minuto) || '08:00'}"></label>
           <label>Hasta <input type="time" class="cierra-input" value="${minutesToHHMM(h.cierra_minuto) || '12:00'}"></label>
         </div>
         <label class="turno-toggle">
           <input type="checkbox" class="tarde-check" ${tieneTarde ? 'checked' : ''}>
-          Tiene turno tarde (con descanso al mediodía)
+          Tiene turno tarde
         </label>
         <div class="turno turno-tarde" ${tieneTarde ? '' : 'style="display:none;"'}>
           <span class="turno-label">Tarde</span>
@@ -729,6 +842,8 @@ async function loadHorarios() {
     });
     list.appendChild(row);
   });
+
+  await renderSeccionFestivos(list);
 }
 
 document.getElementById('guardarHorariosBtn').addEventListener('click', async () => {
@@ -753,6 +868,115 @@ document.getElementById('guardarHorariosBtn').addEventListener('click', async ()
   showToast(huboError ? 'Error al guardar' : 'Horarios actualizados', huboError ? 'error' : 'success');
 });
 
+// ============================================
+// FESTIVOS - PANEL DUENO
+// ============================================
+async function renderSeccionFestivos(container) {
+  const barberoId = currentBarberoHorarios;
+  const anioActual = new Date().getFullYear();
+
+  const { data: festivosGuardados } = await supabaseClient
+    .from('barbero_festivos')
+    .select('*')
+    .eq('barbero_id', barberoId);
+
+  const festivosMap = {};
+  (festivosGuardados || []).forEach(f => {
+    festivosMap[f.fecha] = f;
+  });
+
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+
+  const festivosColombia = [
+    ...getFestivosColombiaAnio(anioActual),
+    ...getFestivosColombiaAnio(anioActual + 1),
+  ].filter(f => f >= hoy).sort((a, b) => a - b);
+
+  const seccion = document.createElement('div');
+  seccion.className = 'festivos-seccion';
+  seccion.innerHTML = `
+    <div class="festivos-header">
+      <h3>Festivos colombianos</h3>
+      <p class="festivos-desc">
+        Indica si el barbero trabaja o descansa en cada festivo.
+        Por defecto estan cerrados.
+      </p>
+    </div>
+    <div class="festivos-lista" id="festivosListaPanel"></div>
+    <button type="button" class="btn btn-dark festivos-guardar-btn" id="guardarFestivosBtn">
+      Guardar festivos
+    </button>
+  `;
+  container.appendChild(seccion);
+
+  const lista = seccion.querySelector('#festivosListaPanel');
+
+  festivosColombia.forEach(fecha => {
+    const key = dateKey(fecha);
+    const guardado = festivosMap[key];
+    const cerrado = guardado ? guardado.cerrado : true;
+
+    const fechaLabel = fecha.toLocaleDateString('es-CO', {
+      weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+    });
+    const nombreFestivo = getNombreFestivo(fecha);
+
+    const row = document.createElement('div');
+    row.className = 'festivo-row ' + (cerrado ? 'cerrado' : 'abierto');
+    row.dataset.fecha = key;
+    row.innerHTML = `
+      <div class="festivo-info">
+        <strong>${nombreFestivo}</strong>
+        <span>${fechaLabel}</span>
+      </div>
+      <div class="festivo-toggle">
+        <span class="festivo-estado">${cerrado ? 'Cerrado' : 'Abierto'}</span>
+        <label class="toggle-switch">
+          <input type="checkbox" class="festivo-check" ${cerrado ? '' : 'checked'}>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    `;
+
+    const check = row.querySelector('.festivo-check');
+    const estado = row.querySelector('.festivo-estado');
+
+    check.addEventListener('change', () => {
+      const abierto = check.checked;
+      estado.textContent = abierto ? 'Abierto' : 'Cerrado';
+      row.className = 'festivo-row ' + (abierto ? 'abierto' : 'cerrado');
+    });
+
+    lista.appendChild(row);
+  });
+
+  seccion.querySelector('#guardarFestivosBtn').addEventListener('click', async () => {
+    const filas = lista.querySelectorAll('.festivo-row');
+    const upserts = [];
+
+    filas.forEach(row => {
+      const fecha = row.dataset.fecha;
+      const cerrado = !row.querySelector('.festivo-check').checked;
+      upserts.push({ barbero_id: barberoId, fecha, cerrado });
+    });
+
+    const { error } = await supabaseClient
+      .from('barbero_festivos')
+      .upsert(upserts, { onConflict: 'barbero_id,fecha' });
+
+    if (error) {
+      showToast('Error al guardar festivos', 'error');
+      console.error(error);
+    } else {
+      showToast('Festivos guardados');
+    }
+  });
+}
+
+// ============================================
+// DISENO - NEGOCIO FORM
+// ============================================
 function loadNegocioForm() {
   document.getElementById('campoNombre').value = negocio.nombre || '';
   document.getElementById('campoDescripcion').value = negocio.descripcion || '';
@@ -802,8 +1026,8 @@ document.getElementById('uploadLogoBtn').addEventListener('click', () => {
 document.getElementById('logoInput').addEventListener('change', async (e) => {
   const file = e.target.files[0];
   if (!file) return;
-  if (file.size > 2 * 1024 * 1024) { showToast('Máx 2MB', 'error'); return; }
-  if (!file.type.startsWith('image/')) { showToast('Solo imágenes', 'error'); return; }
+  if (file.size > 2 * 1024 * 1024) { showToast('Max 2MB', 'error'); return; }
+  if (!file.type.startsWith('image/')) { showToast('Solo imagenes', 'error'); return; }
 
   showToast('Subiendo logo...');
   const fileExt = file.name.split('.').pop();
@@ -835,7 +1059,7 @@ document.getElementById('logoInput').addEventListener('change', async (e) => {
 });
 
 document.getElementById('removeLogoBtn').addEventListener('click', async () => {
-  if (!confirm('¿Quitar el logo?')) return;
+  if (!confirm('Quitar el logo?')) return;
   const { error } = await supabaseClient
     .from('negocios').update({ logo_url: null }).eq('id', negocio.id);
   if (error) return showToast('Error', 'error');
@@ -847,6 +1071,9 @@ document.getElementById('removeLogoBtn').addEventListener('click', async () => {
   showToast('Logo eliminado');
 });
 
+// ============================================
+// NOTIFICACIONES
+// ============================================
 async function loadNotificaciones() {
   const { data } = await supabaseClient
     .from('notificaciones').select('*')
@@ -869,7 +1096,7 @@ function renderNotifDropdown(notifs) {
   dropdown.innerHTML = `
     <div class="notif-dropdown-header">
       <strong>Notificaciones</strong>
-      ${notifs.some(n => !n.leida) ? '<button class="notif-mark-read" id="markAllReadBtn">Marcar leídas</button>' : ''}
+      ${notifs.some(n => !n.leida) ? '<button class="notif-mark-read" id="markAllReadBtn">Marcar leidas</button>' : ''}
     </div>`;
   if (!notifs.length) {
     dropdown.innerHTML += '<div class="notif-empty">No tienes notificaciones</div>';
@@ -910,7 +1137,9 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// ========== ESTADÍSTICAS ==========
+// ============================================
+// ESTADISTICAS
+// ============================================
 let currentPeriod = 'hoy';
 let chartCitasDia = null;
 let chartEstados = null;
@@ -1016,7 +1245,7 @@ async function renderChartCitasDia() {
   chartCitasDia = new Chart(canvas, {
     type: 'bar',
     data: {
-      labels: labels,
+      labels,
       datasets: [{
         label: 'Citas',
         data: counts,
@@ -1028,9 +1257,7 @@ async function renderChartCitasDia() {
       responsive: true,
       maintainAspectRatio: false,
       plugins: { legend: { display: false } },
-      scales: {
-        y: { beginAtZero: true, ticks: { stepSize: 1 } }
-      }
+      scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
     }
   });
 }
@@ -1040,7 +1267,7 @@ function renderChartEstados(comp, can, conf) {
   if (chartEstados) chartEstados.destroy();
 
   if (comp + can + conf === 0) {
-    canvas.parentElement.innerHTML = '<p class="stats-empty">Sin datos en este período</p>';
+    canvas.parentElement.innerHTML = '<p class="stats-empty">Sin datos en este periodo</p>';
     return;
   }
 
@@ -1080,7 +1307,7 @@ function renderTopBarberos(completadas) {
     .slice(0, 5);
 
   if (!ranking.length) {
-    list.innerHTML = '<p class="stats-empty">Sin datos aún</p>';
+    list.innerHTML = '<p class="stats-empty">Sin datos aun</p>';
     return;
   }
 
@@ -1112,7 +1339,7 @@ function renderTopServicios(completadas) {
     .slice(0, 5);
 
   if (!ranking.length) {
-    list.innerHTML = '<p class="stats-empty">Sin datos aún</p>';
+    list.innerHTML = '<p class="stats-empty">Sin datos aun</p>';
     return;
   }
 
@@ -1145,7 +1372,7 @@ function renderTopHoras(citasP) {
     .slice(0, 5);
 
   if (!ranking.length) {
-    list.innerHTML = '<p class="stats-empty">Sin datos aún</p>';
+    list.innerHTML = '<p class="stats-empty">Sin datos aun</p>';
     return;
   }
 
@@ -1165,7 +1392,6 @@ function renderTopHoras(citasP) {
     `;
   }).join('');
 }
-// ========== FIN ESTADÍSTICAS ==========
 
 setInterval(() => { loadNotificaciones(); loadCitas(); }, 60000);
 
