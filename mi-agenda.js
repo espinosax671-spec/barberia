@@ -30,7 +30,111 @@ function endOfWeekStr() {
   d.setDate(d.getDate() + diff);
   return d.toISOString().slice(0, 10);
 }
+function dateKey(d) {
+  const yyyy = d.getFullYear();
+  const mm = (d.getMonth() + 1).toString().padStart(2, '0');
+  const dd = d.getDate().toString().padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
 
+// ============================================
+// FESTIVOS COLOMBIA
+// ============================================
+function calcularPascua(anio) {
+  const a = anio % 19;
+  const b = Math.floor(anio / 100);
+  const c = anio % 100;
+  const d = Math.floor(b / 4);
+  const e = b % 4;
+  const f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4);
+  const k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7;
+  const m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const mes = Math.floor((h + l - 7 * m + 114) / 31);
+  const dia = ((h + l - 7 * m + 114) % 31) + 1;
+  return new Date(anio, mes - 1, dia);
+}
+
+function getFestivosColombiaAnio(anio) {
+  const festivos = [];
+
+  const fijos = [
+    [1, 1],
+    [5, 1],
+    [7, 20],
+    [8, 7],
+    [12, 8],
+    [12, 25],
+  ];
+  fijos.forEach(([m, d]) => festivos.push(new Date(anio, m - 1, d)));
+
+  const emiliani = [
+    [1, 6],
+    [3, 19],
+    [6, 29],
+    [8, 15],
+    [10, 12],
+    [11, 1],
+    [11, 11],
+  ];
+  emiliani.forEach(([m, d]) => {
+    const fecha = new Date(anio, m - 1, d);
+    const dow = fecha.getDay();
+    if (dow !== 1) {
+      const diff = dow === 0 ? 1 : 8 - dow;
+      fecha.setDate(fecha.getDate() + diff);
+    }
+    festivos.push(fecha);
+  });
+
+  const pascua = calcularPascua(anio);
+  const juevesSanto = new Date(pascua);
+  juevesSanto.setDate(pascua.getDate() - 3);
+  const viernesSanto = new Date(pascua);
+  viernesSanto.setDate(pascua.getDate() - 2);
+  festivos.push(juevesSanto);
+  festivos.push(viernesSanto);
+
+  [39, 60, 68].forEach(offset => {
+    const f = new Date(pascua);
+    f.setDate(pascua.getDate() + offset);
+    const dow = f.getDay();
+    if (dow !== 1) {
+      const diff = dow === 0 ? 1 : 8 - dow;
+      f.setDate(f.getDate() + diff);
+    }
+    festivos.push(f);
+  });
+
+  return festivos;
+}
+
+function getNombreFestivo(fecha) {
+  const mesdia = dateKey(fecha).slice(5);
+  const nombres = {
+    '01-01': 'Año Nuevo',
+    '05-01': 'Dia del Trabajo',
+    '07-20': 'Independencia',
+    '08-07': 'Batalla de Boyaca',
+    '12-08': 'Inmaculada Concepcion',
+    '12-25': 'Navidad',
+    '01-06': 'Reyes Magos',
+    '03-19': 'San Jose',
+    '06-29': 'San Pedro y San Pablo',
+    '08-15': 'Asuncion',
+    '10-12': 'Dia de la Raza',
+    '11-01': 'Todos los Santos',
+    '11-11': 'Independencia de Cartagena',
+  };
+  return nombres[mesdia] || 'Festivo';
+}
+
+// ============================================
+// TOAST
+// ============================================
 function showToast(msg, type = 'success') {
   const toast = document.createElement('div');
   toast.className = 'toast ' + type;
@@ -39,6 +143,9 @@ function showToast(msg, type = 'success') {
   setTimeout(() => toast.remove(), 4000);
 }
 
+// ============================================
+// INIT
+// ============================================
 async function init() {
   const { data: sessionData } = await supabaseClient.auth.getSession();
   if (!sessionData.session) {
@@ -56,7 +163,7 @@ async function init() {
     .maybeSingle();
 
   if (error || !barberoData) {
-    alert('No encontramos tu cuenta de barbero. Serás redirigido al login.');
+    alert('No encontramos tu cuenta de barbero. Seras redirigido al login.');
     await supabaseClient.auth.signOut();
     window.location.href = 'login.html';
     return;
@@ -87,6 +194,9 @@ async function init() {
   initRealtime();
 }
 
+// ============================================
+// REALTIME
+// ============================================
 function initRealtime() {
   supabaseClient
     .channel('mis-citas-' + barbero.id)
@@ -134,6 +244,9 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
   });
 });
 
+// ============================================
+// CITAS
+// ============================================
 async function loadCitas() {
   const { data, error } = await supabaseClient
     .from('citas').select('*')
@@ -184,7 +297,7 @@ function renderCitas() {
           <path d="M16 2v4M8 2v4M3 10h18"/>
         </svg>
         <h3>No hay citas en esta vista</h3>
-        <p>Cuando tengas citas confirmadas aparecerán aquí.</p>
+        <p>Cuando tengas citas confirmadas apareceran aqui.</p>
       </div>`;
     return;
   }
@@ -254,6 +367,9 @@ document.getElementById('filterBar').addEventListener('click', (e) => {
   renderCitas();
 });
 
+// ============================================
+// PERFIL
+// ============================================
 function loadPerfilForm() {
   document.getElementById('perfilNombre').value = barbero.nombre || '';
   document.getElementById('perfilTelefono').value = barbero.telefono || '';
@@ -275,6 +391,8 @@ function loadPerfilForm() {
     fotoPlaceholder.style.display = 'block';
     removeBtn.style.display = 'none';
   }
+
+  loadFestivosBarbero();
 }
 
 document.getElementById('perfilForm').addEventListener('submit', async (e) => {
@@ -287,7 +405,6 @@ document.getElementById('perfilForm').addEventListener('submit', async (e) => {
   const email = document.getElementById('perfilEmail').value.trim().toLowerCase();
 
   try {
-    // Actualizar nombre y teléfono en la tabla
     const { error: updateError } = await supabaseClient
       .from('barberos')
       .update({ nombre, telefono })
@@ -305,7 +422,6 @@ document.getElementById('perfilForm').addEventListener('submit', async (e) => {
     document.getElementById('avatarInitials').textContent = getInitials(nombre);
     document.getElementById('fotoPlaceholder').textContent = getInitials(nombre);
 
-    // Si el email cambió, actualizarlo directamente
     const emailAnterior = (barbero.email || '').toLowerCase();
     if (email !== emailAnterior) {
       const { error: authError } = await supabaseClient.auth.updateUser({ email });
@@ -347,8 +463,8 @@ document.getElementById('uploadFotoBtn').addEventListener('click', () => {
 document.getElementById('fotoInput').addEventListener('change', async (e) => {
   const file = e.target.files[0];
   if (!file) return;
-  if (file.size > 2 * 1024 * 1024) { showToast('Máx 2MB', 'error'); return; }
-  if (!file.type.startsWith('image/')) { showToast('Solo imágenes', 'error'); return; }
+  if (file.size > 2 * 1024 * 1024) { showToast('Max 2MB', 'error'); return; }
+  if (!file.type.startsWith('image/')) { showToast('Solo imagenes', 'error'); return; }
 
   showToast('Subiendo foto...');
 
@@ -385,7 +501,7 @@ document.getElementById('fotoInput').addEventListener('change', async (e) => {
 });
 
 document.getElementById('removeFotoBtn').addEventListener('click', async () => {
-  if (!confirm('¿Quitar tu foto?')) return;
+  if (!confirm('Quitar tu foto?')) return;
   const { error } = await supabaseClient
     .from('barberos').update({ foto_url: null }).eq('id', barbero.id);
   if (error) return showToast('Error', 'error');
@@ -404,11 +520,11 @@ document.getElementById('passwordForm').addEventListener('submit', async (e) => 
   const pass2 = document.getElementById('newPassword2').value;
 
   if (pass1 !== pass2) {
-    showToast('Las contraseñas no coinciden', 'error');
+    showToast('Las contrasenas no coinciden', 'error');
     return;
   }
   if (pass1.length < 6) {
-    showToast('Mínimo 6 caracteres', 'error');
+    showToast('Minimo 6 caracteres', 'error');
     return;
   }
 
@@ -421,7 +537,120 @@ document.getElementById('passwordForm').addEventListener('submit', async (e) => 
 
   document.getElementById('newPassword').value = '';
   document.getElementById('newPassword2').value = '';
-  showToast('Contraseña actualizada');
+  showToast('Contrasena actualizada');
 });
+
+// ============================================
+// FESTIVOS - AGENDA BARBERO
+// ============================================
+async function loadFestivosBarbero() {
+  let contenedor = document.getElementById('festivosContainer');
+  if (!contenedor) {
+    contenedor = document.createElement('div');
+    contenedor.id = 'festivosContainer';
+    const passSection = document.querySelector('.password-section');
+    if (passSection) {
+      passSection.insertAdjacentElement('afterend', contenedor);
+    }
+  }
+
+  const anioActual = new Date().getFullYear();
+
+  const { data: festivosGuardados } = await supabaseClient
+    .from('barbero_festivos')
+    .select('*')
+    .eq('barbero_id', barbero.id);
+
+  const festivosMap = {};
+  (festivosGuardados || []).forEach(f => { festivosMap[f.fecha] = f; });
+
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+
+  const festivosColombia = [
+    ...getFestivosColombiaAnio(anioActual),
+    ...getFestivosColombiaAnio(anioActual + 1),
+  ].filter(f => f >= hoy).sort((a, b) => a - b);
+
+  contenedor.innerHTML = `
+    <div class="festivos-agenda-seccion">
+      <h2>Mis festivos</h2>
+      <p class="field-hint festivos-hint">
+        Activa los festivos en los que si vas a trabajar.
+        Los que queden desactivados apareceran como cerrados para tus clientes.
+      </p>
+      <div class="festivos-lista-agenda" id="festivosListaAgenda"></div>
+      <button type="button" class="btn btn-primary festivos-guardar-btn" id="guardarFestivosAgendaBtn">
+        Guardar mis festivos
+      </button>
+    </div>
+  `;
+
+  const lista = contenedor.querySelector('#festivosListaAgenda');
+
+  festivosColombia.forEach(fecha => {
+    const key = dateKey(fecha);
+    const guardado = festivosMap[key];
+    const cerrado = guardado ? guardado.cerrado : true;
+
+    const fechaLabel = fecha.toLocaleDateString('es-CO', {
+      weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+    });
+    const nombreFestivo = getNombreFestivo(fecha);
+
+    const row = document.createElement('div');
+    row.className = 'festivo-agenda-row ' + (cerrado ? 'cerrado' : 'abierto');
+    row.dataset.fecha = key;
+    row.innerHTML = `
+      <div class="festivo-agenda-info">
+        <strong>${nombreFestivo}</strong>
+        <span>${fechaLabel}</span>
+      </div>
+      <div class="festivo-agenda-toggle">
+        <span class="festivo-estado-label ${cerrado ? 'label-cerrado' : 'label-abierto'}">
+          ${cerrado ? 'Descansando' : 'Trabajo'}
+        </span>
+        <label class="toggle-switch">
+          <input type="checkbox" class="festivo-check" ${cerrado ? '' : 'checked'}>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    `;
+
+    const check = row.querySelector('.festivo-check');
+    const estadoLabel = row.querySelector('.festivo-estado-label');
+
+    check.addEventListener('change', () => {
+      const trabaja = check.checked;
+      row.className = 'festivo-agenda-row ' + (trabaja ? 'abierto' : 'cerrado');
+      estadoLabel.textContent = trabaja ? 'Trabajo' : 'Descansando';
+      estadoLabel.className = 'festivo-estado-label ' + (trabaja ? 'label-abierto' : 'label-cerrado');
+    });
+
+    lista.appendChild(row);
+  });
+
+  contenedor.querySelector('#guardarFestivosAgendaBtn').addEventListener('click', async () => {
+    const filas = lista.querySelectorAll('.festivo-agenda-row');
+    const upserts = [];
+
+    filas.forEach(row => {
+      const fecha = row.dataset.fecha;
+      const cerrado = !row.querySelector('.festivo-check').checked;
+      upserts.push({ barbero_id: barbero.id, fecha, cerrado });
+    });
+
+    const { error } = await supabaseClient
+      .from('barbero_festivos')
+      .upsert(upserts, { onConflict: 'barbero_id,fecha' });
+
+    if (error) {
+      showToast('Error al guardar', 'error');
+      console.error(error);
+    } else {
+      showToast('Festivos guardados');
+    }
+  });
+}
 
 init();
