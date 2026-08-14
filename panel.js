@@ -180,15 +180,6 @@ async function init() {
   document.getElementById('negocioNombre').textContent = negocio.nombre;
   document.getElementById('userEmail').textContent = userEmail;
 
-  if (negocio.logo_url) {
-    const headerLogo = document.getElementById('headerLogo');
-    headerLogo.src = negocio.logo_url;
-    headerLogo.style.display = 'block';
-  }
-
-  const badge = document.getElementById('planBadge');
-  badge.style.display = 'none';
-
   const tiendaUrl = `${APP_BASE_URL}/reservar.html?b=${negocio.subdominio}`;
   document.getElementById('tiendaUrl').textContent = tiendaUrl.replace(/^https?:\/\//, '');
   document.getElementById('viewShopBtn').href = tiendaUrl;
@@ -201,7 +192,7 @@ async function init() {
   });
 
   document.getElementById('loadingView').style.display = 'none';
-  document.getElementById('panelView').style.display = 'block';
+  document.getElementById('panelView').style.display = 'flex';
 
   await loadBarberos();
   await loadCitas();
@@ -209,6 +200,79 @@ async function init() {
   loadNotificaciones();
 
   initRealtime();
+
+  // Sidebar
+  renderSidebar();
+  initSidebarNav();
+}
+
+// ============================================
+// SIDEBAR
+// ============================================
+function renderSidebar() {
+  const sidebarNombre = document.getElementById('sidebarNegocioNombre');
+  if (sidebarNombre) sidebarNombre.textContent = negocio.nombre;
+
+  const logoImg = document.getElementById('sidebarLogoImg');
+  const logoInitial = document.getElementById('sidebarLogoInitial');
+
+  if (negocio.logo_url) {
+    logoImg.src = negocio.logo_url;
+    logoImg.style.display = 'block';
+    logoInitial.style.display = 'none';
+  } else {
+    logoInitial.textContent = negocio.nombre.charAt(0).toUpperCase();
+  }
+}
+
+function initSidebarNav() {
+  const sidebarItems = document.querySelectorAll('.sidebar-nav-item');
+
+  function switchTab(tab) {
+    sidebarItems.forEach(i => i.classList.remove('active'));
+    const target = document.querySelector(`.sidebar-nav-item[data-tab="${tab}"]`);
+    if (target) target.classList.add('active');
+
+    document.querySelectorAll('.tab-panel').forEach(p => p.style.display = 'none');
+    document.getElementById('tab-' + tab).style.display = 'block';
+
+    if (tab === 'servicios') loadServicios();
+    if (tab === 'horarios') loadHorarios();
+    if (tab === 'citas') loadCitas();
+
+    // Close mobile sidebar
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebarOverlay').classList.remove('show');
+  }
+
+  sidebarItems.forEach(item => {
+    item.addEventListener('click', () => switchTab(item.dataset.tab));
+  });
+
+  // Colapsar sidebar
+  const collapseBtn = document.getElementById('collapseBtn');
+  if (collapseBtn) {
+    collapseBtn.addEventListener('click', () => {
+      document.getElementById('sidebar').classList.toggle('collapsed');
+    });
+  }
+
+  // Mobile menu
+  const mobileBtn = document.getElementById('mobileMenuBtn');
+  if (mobileBtn) {
+    mobileBtn.addEventListener('click', () => {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebarOverlay').classList.toggle('show');
+    });
+  }
+
+  const overlay = document.getElementById('sidebarOverlay');
+  if (overlay) {
+    overlay.addEventListener('click', () => {
+      document.getElementById('sidebar').classList.remove('open');
+      overlay.classList.remove('show');
+    });
+  }
 }
 
 // ============================================
@@ -268,19 +332,6 @@ function playNotifSound() {
 document.getElementById('logoutBtn').addEventListener('click', async () => {
   await supabaseClient.auth.signOut();
   window.location.href = 'login.html';
-});
-
-document.querySelectorAll('.tab-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.tab-panel').forEach(p => p.style.display = 'none');
-    btn.classList.add('active');
-    document.getElementById('tab-' + btn.dataset.tab).style.display = 'block';
-
-    if (btn.dataset.tab === 'servicios') loadServicios();
-    if (btn.dataset.tab === 'horarios') loadHorarios();
-    if (btn.dataset.tab === 'citas') loadCitas();
-  });
 });
 
 // ============================================
@@ -639,7 +690,10 @@ function renderCitas() {
     const el = document.getElementById('c-' + k);
     if (el) el.textContent = counts[k];
   });
-  document.getElementById('citasCount').textContent = counts.confirmada;
+
+  // Actualizar contador del sidebar
+  const sidebarCount = document.getElementById('sidebarCitasCount');
+  if (sidebarCount) sidebarCount.textContent = counts.confirmada;
 
   let filtradas = citas;
   if (currentFilter === 'hoy') filtradas = citas.filter(c => c.fecha === hoy);
@@ -666,20 +720,49 @@ function renderCitas() {
       weekday: 'long', day: 'numeric', month: 'long'
     });
     const barberoNombre = cita.barberos ? cita.barberos.nombre : 'Sin barbero';
+
     card.innerHTML = `
       <div class="cita-info">
         <div class="cita-info-top">
           <strong>${cita.nombre_cliente}</strong>
           <span class="cita-badge ${cita.estado}">${cita.estado}</span>
         </div>
-        <span>${cita.servicio_nombre} · ${formatCOP(cita.precio)} · con ${barberoNombre}</span>
-        <span>${fechaLabel} · ${minutesToLabel(cita.hora_inicio)}</span>
-        <span>Tel: ${cita.telefono}</span>
+        <span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/>
+            <line x1="20" y1="4" x2="8.12" y2="15.88"/>
+            <line x1="14.47" y1="14.48" x2="20" y2="20"/>
+          </svg>
+          ${cita.servicio_nombre} · ${formatCOP(cita.precio)} · con ${barberoNombre}
+        </span>
+        <span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2"/>
+            <path d="M16 2v4M8 2v4M3 10h18"/>
+          </svg>
+          ${fechaLabel} · ${minutesToLabel(cita.hora_inicio)}
+        </span>
+        <span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/>
+          </svg>
+          Tel: ${cita.telefono}
+        </span>
       </div>
       <div class="cita-actions">
         ${cita.estado === 'confirmada' ? `
           <button class="complete-btn" data-id="${cita.id}">Completar</button>
           <button class="cancel-btn" data-id="${cita.id}">Cancelar</button>
+        ` : ''}
+        ${cita.estado === 'completada' ? `
+          <div class="cita-status-icon completada">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+        ` : ''}
+        ${cita.estado === 'cancelada' ? `
+          <div class="cita-status-icon cancelada">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </div>
         ` : ''}
       </div>
     `;
@@ -1009,6 +1092,8 @@ document.getElementById('negocioForm').addEventListener('submit', async (e) => {
   if (error) return showToast('Error al guardar', 'error');
   negocio.nombre = nombre;
   document.getElementById('negocioNombre').textContent = nombre;
+  const sidebarNombre = document.getElementById('sidebarNegocioNombre');
+  if (sidebarNombre) sidebarNombre.textContent = nombre;
   showToast('Datos actualizados');
 });
 
@@ -1045,9 +1130,16 @@ document.getElementById('logoInput').addEventListener('change', async (e) => {
   document.getElementById('logoImg').style.display = 'block';
   document.getElementById('logoPlaceholder').style.display = 'none';
   document.getElementById('removeLogoBtn').style.display = 'inline-flex';
-  const headerLogo = document.getElementById('headerLogo');
-  headerLogo.src = logoUrl;
-  headerLogo.style.display = 'block';
+
+  // Actualizar sidebar
+  const sidebarLogoImg = document.getElementById('sidebarLogoImg');
+  const sidebarLogoInitial = document.getElementById('sidebarLogoInitial');
+  if (sidebarLogoImg) {
+    sidebarLogoImg.src = logoUrl;
+    sidebarLogoImg.style.display = 'block';
+  }
+  if (sidebarLogoInitial) sidebarLogoInitial.style.display = 'none';
+
   showToast('Logo actualizado');
 });
 
@@ -1060,7 +1152,12 @@ document.getElementById('removeLogoBtn').addEventListener('click', async () => {
   document.getElementById('logoImg').style.display = 'none';
   document.getElementById('logoPlaceholder').style.display = 'block';
   document.getElementById('removeLogoBtn').style.display = 'none';
-  document.getElementById('headerLogo').style.display = 'none';
+
+  const sidebarLogoImg = document.getElementById('sidebarLogoImg');
+  const sidebarLogoInitial = document.getElementById('sidebarLogoInitial');
+  if (sidebarLogoImg) sidebarLogoImg.style.display = 'none';
+  if (sidebarLogoInitial) sidebarLogoInitial.style.display = 'block';
+
   showToast('Logo eliminado');
 });
 
@@ -1270,7 +1367,7 @@ function renderChartEstados(comp, can, conf) {
       labels: ['Completadas', 'Canceladas', 'Pendientes'],
       datasets: [{
         data: [comp, can, conf],
-        backgroundColor: ['#157a3d', '#c8202f', '#2856d6'],
+        backgroundColor: ['#16a34a', '#d63647', '#2856d6'],
         borderWidth: 0,
       }]
     },
