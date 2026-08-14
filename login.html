@@ -11,7 +11,7 @@
 
 <!-- PWA -->
 <link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#16294f">
+<meta name="theme-color" content="#0a1628">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="CitaBarber">
@@ -23,150 +23,256 @@
 </head>
 <body class="auth-body">
 
+<!-- Elementos decorativos de fondo -->
+<div class="bg-decoration bg-decoration-tl"></div>
+<div class="bg-decoration bg-decoration-tr"></div>
+<div class="bg-decoration bg-decoration-bl"></div>
+<div class="bg-decoration bg-decoration-br"></div>
+
 <div class="auth-container">
 
+  <!-- LOGO PRINCIPAL -->
   <div class="auth-brand">
     <a href="index.html">
       <img src="citabarber.png" alt="CitaBarber" class="brand-logo-img">
     </a>
   </div>
 
-  <div class="auth-card">
+  <!-- CARD PRINCIPAL CON 2 COLUMNAS -->
+  <div class="auth-card-wrap">
 
-    <div id="mainView">
-      <div class="auth-tabs">
-        <button class="auth-tab active" data-tab="ingresar">Iniciar sesión</button>
-        <button class="auth-tab" data-tab="registrar">Registrarme</button>
-      </div>
-
-      <!-- LOGIN -->
-      <div class="auth-panel" id="panel-ingresar">
-        <h1 class="auth-title">Bienvenido de vuelta</h1>
-        <p class="auth-subtitle">Ingresa a tu panel para gestionar tus citas.</p>
-
-        <form id="loginForm">
-          <div class="field">
-            <label for="loginEmail">Correo electrónico</label>
-            <input type="email" id="loginEmail" required placeholder="tucorreo@ejemplo.com">
-          </div>
-          <div class="field">
-            <label for="loginPassword">Contraseña</label>
-            <div class="password-wrap">
-              <input type="password" id="loginPassword" required placeholder="••••••••">
-              <button type="button" class="password-toggle" data-target="loginPassword" aria-label="Mostrar contraseña">
-                <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                  <circle cx="12" cy="12" r="3"/>
-                </svg>
-                <svg class="eye-closed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
-                  <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/>
-                  <line x1="1" y1="1" x2="23" y2="23"/>
-                </svg>
-              </button>
-            </div>
-          </div>
-          <button type="submit" class="btn btn-dark btn-block btn-lg">Entrar</button>
-          <p class="form-msg" id="loginMsg"></p>
-        </form>
-      </div>
-
-      <!-- REGISTRO -->
-      <div class="auth-panel" id="panel-registrar" style="display:none;">
-        <h1 class="auth-title">Crea tu cuenta</h1>
-        <p class="auth-subtitle">30 días de prueba gratis. Sin tarjeta de crédito.</p>
-
-        <form id="registerForm">
-          <div class="field">
-            <label for="regNombre">Nombre de tu barbería</label>
-            <input type="text" id="regNombre" required placeholder="Ej: El Corte Clásico">
-          </div>
-
-          <div class="field">
-            <label for="regSubdominio">
-              URL de tu barbería
-              <span class="field-hint">Solo minúsculas, números y guiones</span>
-            </label>
-            <div class="subdominio-wrap">
-              <input type="text" id="regSubdominio" required placeholder="mi-barberia"
-                pattern="[a-z0-9\-]+" title="Solo minúsculas, números y guiones">
-              <span class="subdominio-suffix" id="urlPreview">/reservar</span>
-            </div>
-          </div>
-
-          <div class="form-row-2">
-            <div class="field">
-              <label for="regEmail">Correo</label>
-              <input type="email" id="regEmail" required placeholder="tu@correo.com">
-            </div>
-            <div class="field">
-              <label for="regTelefono">WhatsApp</label>
-              <input type="tel" id="regTelefono" placeholder="3000000000">
-            </div>
-          </div>
-
-          <div class="form-row-2">
-            <div class="field">
-              <label for="regPassword">Contraseña</label>
-              <div class="password-wrap">
-                <input type="password" id="regPassword" required minlength="6" placeholder="Mín. 6 caracteres">
-                <button type="button" class="password-toggle" data-target="regPassword" aria-label="Mostrar contraseña">
-                  <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                    <circle cx="12" cy="12" r="3"/>
-                  </svg>
-                  <svg class="eye-closed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
-                    <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/>
-                    <line x1="1" y1="1" x2="23" y2="23"/>
-                  </svg>
-                </button>
-              </div>
-            </div>
-            <div class="field">
-              <label for="regPassword2">Confirmar</label>
-              <div class="password-wrap">
-                <input type="password" id="regPassword2" required placeholder="Repite tu contraseña">
-                <button type="button" class="password-toggle" data-target="regPassword2" aria-label="Mostrar contraseña">
-                  <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                    <circle cx="12" cy="12" r="3"/>
-                  </svg>
-                  <svg class="eye-closed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
-                    <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/>
-                    <line x1="1" y1="1" x2="23" y2="23"/>
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <button type="submit" class="btn btn-primary btn-block btn-lg">Crear mi cuenta</button>
-          <p class="form-msg" id="registerMsg"></p>
-        </form>
-      </div>
-    </div>
-
-    <div id="checkEmailView" style="display:none;">
-      <div class="check-email">
-        <div class="check-email-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-            <polyline points="22,6 12,13 2,6"/>
+    <!-- COLUMNA IZQUIERDA - Imagen y texto motivacional -->
+    <div class="auth-side-panel">
+      <div class="side-panel-overlay"></div>
+      <div class="side-panel-content">
+        <div class="side-panel-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="6" cy="6" r="3"/>
+            <circle cx="6" cy="18" r="3"/>
+            <line x1="20" y1="4" x2="8.12" y2="15.88"/>
+            <line x1="14.47" y1="14.48" x2="20" y2="20"/>
+            <line x1="8.12" y1="8.12" x2="12" y2="12"/>
           </svg>
         </div>
-        <h2>Revisa tu correo</h2>
-        <p>Te enviamos un enlace de confirmación a:</p>
-        <p><strong id="confirmEmailAddr"></strong></p>
-        <p class="mt-2">Haz clic en el enlace para activar tu cuenta.</p>
-        <p class="mt-4">
-          <button type="button" class="btn btn-ghost" id="backToLoginBtn">Volver</button>
+        <h2 class="side-panel-title">
+          Tu estilo,<br>
+          <span>nuestra pasion</span>
+        </h2>
+        <p class="side-panel-subtitle">
+          Plataforma profesional para<br>
+          gestionar tus citas de <strong>barberia</strong>.
         </p>
+
+        <div class="side-panel-features">
+          <div class="side-feature">
+            <div class="side-feature-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="4" width="18" height="18" rx="2"/>
+                <path d="M16 2v4M8 2v4M3 10h18"/>
+              </svg>
+            </div>
+            <div class="side-feature-text">
+              <strong>Gestiona</strong>
+              <span>tus citas</span>
+            </div>
+          </div>
+          <div class="side-feature">
+            <div class="side-feature-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+            </div>
+            <div class="side-feature-text">
+              <strong>Clientes</strong>
+              <span>satisfechos</span>
+            </div>
+          </div>
+          <div class="side-feature">
+            <div class="side-feature-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+                <polyline points="17 6 23 6 23 12"/>
+              </svg>
+            </div>
+            <div class="side-feature-text">
+              <strong>Mas eficiencia</strong>
+              <span>para tu negocio</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
+    <!-- COLUMNA DERECHA - Formulario -->
+    <div class="auth-card">
+
+      <div id="mainView">
+        <div class="auth-tabs">
+          <button class="auth-tab active" data-tab="ingresar">Iniciar sesion</button>
+          <button class="auth-tab" data-tab="registrar">Registrarme</button>
+        </div>
+
+        <!-- LOGIN -->
+        <div class="auth-panel" id="panel-ingresar">
+          <h1 class="auth-title">Bienvenido de vuelta</h1>
+          <p class="auth-subtitle">Ingresa a tu panel para gestionar tus citas.</p>
+
+          <form id="loginForm">
+            <div class="field">
+              <label for="loginEmail">Correo electronico</label>
+              <div class="input-with-icon">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                  <polyline points="22,6 12,13 2,6"/>
+                </svg>
+                <input type="email" id="loginEmail" required placeholder="tucorreo@ejemplo.com">
+              </div>
+            </div>
+            <div class="field">
+              <label for="loginPassword">Contrasena</label>
+              <div class="input-with-icon">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="11" width="18" height="11" rx="2"/>
+                  <path d="M7 11V7a5 5 0 0110 0v4"/>
+                </svg>
+                <input type="password" id="loginPassword" required placeholder="••••••••">
+                <button type="button" class="password-toggle" data-target="loginPassword" aria-label="Mostrar contrasena">
+                  <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                  <svg class="eye-closed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;">
+                    <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/>
+                    <line x1="1" y1="1" x2="23" y2="23"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div class="form-extras">
+              <label class="checkbox-label">
+                <input type="checkbox" id="rememberMe" checked>
+                <span>Recordarme</span>
+              </label>
+              <a href="#" class="forgot-link">Olvidaste tu contrasena?</a>
+            </div>
+
+            <button type="submit" class="btn btn-dark btn-block btn-lg">
+              Entrar
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="5" y1="12" x2="19" y2="12"/>
+                <polyline points="12 5 19 12 12 19"/>
+              </svg>
+            </button>
+            <p class="form-msg" id="loginMsg"></p>
+          </form>
+        </div>
+
+        <!-- REGISTRO -->
+        <div class="auth-panel" id="panel-registrar" style="display:none;">
+          <h1 class="auth-title">Crea tu cuenta</h1>
+          <p class="auth-subtitle">30 dias de prueba gratis. Sin tarjeta de credito.</p>
+
+          <form id="registerForm">
+            <div class="field">
+              <label for="regNombre">Nombre de tu barberia</label>
+              <input type="text" id="regNombre" required placeholder="Ej: El Corte Clasico">
+            </div>
+
+            <div class="field">
+              <label for="regSubdominio">
+                URL de tu barberia
+                <span class="field-hint">Solo minusculas, numeros y guiones</span>
+              </label>
+              <div class="subdominio-wrap">
+                <input type="text" id="regSubdominio" required placeholder="mi-barberia"
+                  pattern="[a-z0-9\-]+" title="Solo minusculas, numeros y guiones">
+                <span class="subdominio-suffix" id="urlPreview">/reservar</span>
+              </div>
+            </div>
+
+            <div class="form-row-2">
+              <div class="field">
+                <label for="regEmail">Correo</label>
+                <input type="email" id="regEmail" required placeholder="tu@correo.com">
+              </div>
+              <div class="field">
+                <label for="regTelefono">WhatsApp</label>
+                <input type="tel" id="regTelefono" placeholder="3000000000">
+              </div>
+            </div>
+
+            <div class="form-row-2">
+              <div class="field">
+                <label for="regPassword">Contrasena</label>
+                <div class="password-wrap">
+                  <input type="password" id="regPassword" required minlength="6" placeholder="Min. 6 caracteres">
+                  <button type="button" class="password-toggle" data-target="regPassword" aria-label="Mostrar contrasena">
+                    <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                      <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                    <svg class="eye-closed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="display:none;">
+                      <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/>
+                      <line x1="1" y1="1" x2="23" y2="23"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <div class="field">
+                <label for="regPassword2">Confirmar</label>
+                <div class="password-wrap">
+                  <input type="password" id="regPassword2" required placeholder="Repite tu contrasena">
+                  <button type="button" class="password-toggle" data-target="regPassword2" aria-label="Mostrar contrasena">
+                    <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                      <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                    <svg class="eye-closed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="display:none;">
+                      <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/>
+                      <line x1="1" y1="1" x2="23" y2="23"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block btn-lg">
+              Crear mi cuenta
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="5" y1="12" x2="19" y2="12"/>
+                <polyline points="12 5 19 12 12 19"/>
+              </svg>
+            </button>
+            <p class="form-msg" id="registerMsg"></p>
+          </form>
+        </div>
+      </div>
+
+      <div id="checkEmailView" style="display:none;">
+        <div class="check-email">
+          <div class="check-email-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+              <polyline points="22,6 12,13 2,6"/>
+            </svg>
+          </div>
+          <h2>Revisa tu correo</h2>
+          <p>Te enviamos un enlace de confirmacion a:</p>
+          <p><strong id="confirmEmailAddr"></strong></p>
+          <p class="mt-2">Haz clic en el enlace para activar tu cuenta.</p>
+          <p class="mt-4">
+            <button type="button" class="btn btn-ghost" id="backToLoginBtn">Volver</button>
+          </p>
+        </div>
+      </div>
+
+    </div>
   </div>
 
   <p class="auth-footer">
-    ¿Necesitas ayuda? <a href="#">Contáctanos</a>
+    Necesitas ayuda? <a href="#">Contactanos</a>
   </p>
 
 </div>
@@ -179,8 +285,8 @@
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js')
-      .then(reg => console.log('✅ SW registrado:', reg.scope))
-      .catch(err => console.error('❌ SW error:', err));
+      .then(reg => console.log('SW registrado:', reg.scope))
+      .catch(err => console.error('SW error:', err));
   });
 }
 </script>
