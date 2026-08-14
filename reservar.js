@@ -119,7 +119,6 @@ function getFestivosColombiaAnio(anio) {
   return festivos;
 }
 
-// Diccionario global de festivos: { 'YYYY-MM-DD': 'Nombre del festivo' }
 const FESTIVOS_INFO = {};
 [new Date().getFullYear(), new Date().getFullYear() + 1].forEach(anio => {
   getFestivosColombiaAnio(anio).forEach(item => {
@@ -144,26 +143,35 @@ async function init() {
   negocio = negocioData;
   document.title = `Agendar cita - ${negocio.nombre}`;
 
+  // Hero
   document.getElementById('heroNombre').textContent = negocio.nombre;
-  document.getElementById('heroCiudad').textContent = negocio.ciudad || 'Barberia';
-  document.getElementById('heroDescripcion').textContent =
-    negocio.descripcion || 'Reserva tu cita en pocos clics.';
+  document.getElementById('heroEyebrow').textContent = negocio.ciudad || 'Barberia';
+  if (negocio.descripcion) {
+    document.getElementById('heroDescripcion').textContent = negocio.descripcion;
+  }
   document.getElementById('successNombreNegocio').textContent = negocio.nombre;
 
-  if (negocio.logo_url) {
-    const heroLogo = document.getElementById('heroLogo');
-    heroLogo.src = negocio.logo_url;
-    heroLogo.style.display = 'block';
+  // Sobre nosotros
+  if (negocio.descripcion) {
+    document.getElementById('sobreDescripcion').textContent =
+      `${negocio.descripcion} Nuestro equipo esta comprometido con tu estilo y satisfaccion.`;
   }
 
+  // Contacto
   document.getElementById('infoDireccion').textContent =
     negocio.direccion || 'Sin direccion registrada';
   document.getElementById('infoCiudad').textContent = negocio.ciudad || '';
   if (negocio.telefono_whatsapp) {
     document.getElementById('infoTelefono').innerHTML =
       `WhatsApp: <a href="https://wa.me/57${negocio.telefono_whatsapp}" target="_blank">${negocio.telefono_whatsapp}</a>`;
+
+    const btnWhatsapp = document.getElementById('btnWhatsapp');
+    if (btnWhatsapp) {
+      btnWhatsapp.href = `https://wa.me/57${negocio.telefono_whatsapp}?text=Hola,%20quiero%20mas%20informacion`;
+    }
   }
 
+  // Cargar barberos
   const { data: barberosData } = await supabaseClient
     .from('barberos').select('*')
     .eq('negocio_id', negocio.id).eq('activo', true)
@@ -174,12 +182,147 @@ async function init() {
   document.getElementById('loadingView').style.display = 'none';
   document.getElementById('mainView').style.display = 'block';
 
+  renderNavBrand();
   renderBarberos();
+  renderServiciosDestacados();
+  renderStatsReales();
+  initScrollNav();
 }
 
 function showNotFound() {
   document.getElementById('loadingView').style.display = 'none';
   document.getElementById('notFoundView').style.display = 'flex';
+}
+
+// ============================================
+// NAV BRAND
+// ============================================
+function renderNavBrand() {
+  const navLogoImg = document.getElementById('navLogoImg');
+  const navLogoInitial = document.getElementById('navLogoInitial');
+  const navBarberiaNombre = document.getElementById('navBarberiaNombre');
+
+  navBarberiaNombre.textContent = negocio.nombre;
+
+  if (negocio.logo_url) {
+    navLogoImg.src = negocio.logo_url;
+    navLogoImg.style.display = 'block';
+    navLogoInitial.style.display = 'none';
+  } else {
+    navLogoInitial.textContent = negocio.nombre.charAt(0).toUpperCase();
+  }
+}
+
+// ============================================
+// SERVICIOS DESTACADOS
+// ============================================
+async function renderServiciosDestacados() {
+  const container = document.getElementById('serviciosCards');
+
+  if (!barberos.length) {
+    container.innerHTML = '<p class="hint">Proximamente...</p>';
+    return;
+  }
+
+  const { data } = await supabaseClient
+    .from('servicios').select('*')
+    .eq('negocio_id', negocio.id)
+    .eq('barbero_id', barberos[0].id)
+    .eq('activo', true)
+    .order('orden', { ascending: true })
+    .limit(5);
+
+  if (!data || !data.length) {
+    container.innerHTML = '<p class="hint">Proximamente...</p>';
+    return;
+  }
+
+  const iconCorte = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>`;
+  const iconBarba = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 22v-4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>`;
+  const iconCombo = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
+  const iconAfeitado = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2l6 6-9 9H5v-6z"/></svg>`;
+  const iconDefault = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
+
+  container.innerHTML = data.map(s => {
+    const nombreLower = s.nombre.toLowerCase();
+    let icon = iconDefault;
+    if (nombreLower.includes('combo')) icon = iconCombo;
+    else if (nombreLower.includes('barba') && !nombreLower.includes('corte')) icon = iconBarba;
+    else if (nombreLower.includes('corte')) icon = iconCorte;
+    else if (nombreLower.includes('afeit')) icon = iconAfeitado;
+
+    return `
+      <a href="#reservar" class="servicio-card-premium">
+        <div class="servicio-card-icon">${icon}</div>
+        <h4>${s.nombre}</h4>
+        <p>${s.duracion_min} minutos</p>
+        <div class="servicio-card-price">${formatCOP(s.precio)}</div>
+      </a>
+    `;
+  }).join('');
+}
+
+// ============================================
+// STATS REALES
+// ============================================
+async function renderStatsReales() {
+  const { data: citas } = await supabaseClient
+    .from('citas')
+    .select('id, nombre_cliente')
+    .eq('negocio_id', negocio.id)
+    .eq('estado', 'completada');
+
+  const totalCitas = citas ? citas.length : 0;
+  const clientesUnicos = citas
+    ? new Set(citas.map(c => c.nombre_cliente.toLowerCase())).size
+    : 0;
+
+  document.getElementById('statCitas').textContent =
+    totalCitas > 999 ? '1000+' : (totalCitas > 0 ? totalCitas + '+' : '100+');
+  document.getElementById('statClientes').textContent =
+    clientesUnicos > 499 ? '500+' : (clientesUnicos > 0 ? clientesUnicos + '+' : '50+');
+}
+
+// ============================================
+// NAV SCROLL SPY
+// ============================================
+function initScrollNav() {
+  const links = document.querySelectorAll('.nav-link');
+  const sections = ['inicio', 'servicios', 'nosotros', 'reservar', 'contacto']
+    .map(id => document.getElementById(id))
+    .filter(Boolean);
+
+  window.addEventListener('scroll', () => {
+    const scrollY = window.pageYOffset + 100;
+    let currentSection = 'inicio';
+
+    sections.forEach(section => {
+      if (section.offsetTop <= scrollY) {
+        currentSection = section.id;
+      }
+    });
+
+    links.forEach(link => {
+      link.classList.remove('active');
+      if (link.getAttribute('href') === '#' + currentSection) {
+        link.classList.add('active');
+      }
+    });
+  });
+
+  // Smooth scroll
+  links.forEach(link => {
+    link.addEventListener('click', (e) => {
+      const href = link.getAttribute('href');
+      if (href && href.startsWith('#')) {
+        e.preventDefault();
+        const target = document.querySelector(href);
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+    });
+  });
 }
 
 // ============================================
@@ -212,7 +355,6 @@ async function selectBarbero(b) {
   selectedTime = null;
   renderBarberos();
 
-  // Traer TODOS los festivos guardados del barbero (para saber cuales estan abiertos)
   const [serviciosRes, horariosRes, festivosRes] = await Promise.all([
     supabaseClient.from('servicios').select('*')
       .eq('negocio_id', negocio.id).eq('barbero_id', b.id).eq('activo', true)
@@ -288,7 +430,6 @@ function renderFechas() {
   const horariosPorDia = {};
   horarios.forEach(h => { horariosPorDia[h.dia_semana] = h; });
 
-  // Mapa de festivos con estado explicito guardado por el barbero
   const festivosBarberoMap = {};
   (barberoFestivosActivos || []).forEach(f => {
     festivosBarberoMap[f.fecha] = f;
@@ -308,15 +449,10 @@ function renderFechas() {
     const esFestivoColombia = !!FESTIVOS_INFO[keyFecha];
     const registroFestivo = festivosBarberoMap[keyFecha];
 
-    // Logica de bloqueo:
-    // - Si NO es festivo colombiano -> se muestra normal
-    // - Si es festivo colombiano y el barbero NO ha guardado nada -> CERRADO (por defecto)
-    // - Si es festivo colombiano y el barbero guardo cerrado=true -> CERRADO
-    // - Si es festivo colombiano y el barbero guardo cerrado=false -> ABIERTO
     let estaCerradoPorFestivo = false;
     if (esFestivoColombia) {
       if (!registroFestivo) {
-        estaCerradoPorFestivo = true; // Por defecto cerrado
+        estaCerradoPorFestivo = true;
       } else {
         estaCerradoPorFestivo = registroFestivo.cerrado;
       }
@@ -523,7 +659,6 @@ document.getElementById('reservaForm').addEventListener('submit', async (e) => {
   msg.textContent = 'Confirmando...';
   msg.className = 'form-msg info';
 
-  // Validacion extra: verificar que la fecha no sea festivo cerrado
   const keyFechaSel = dateKey(selectedDate);
   if (FESTIVOS_INFO[keyFechaSel]) {
     const { data: festivoCheck } = await supabaseClient
