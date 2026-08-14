@@ -9,7 +9,7 @@ let selectedServicio = null;
 let selectedDate = null;
 let selectedTime = null;
 
-const DIAS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+const DIAS = ['Domingo', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado'];
 const DOW_LABELS = ['DOM', 'LUN', 'MAR', 'MIE', 'JUE', 'VIE', 'SAB'];
 const SLOT_STEP = 30;
 
@@ -57,88 +57,75 @@ function getFestivosColombiaAnio(anio) {
   const festivos = [];
 
   const fijos = [
-    [1, 1],
-    [5, 1],
-    [7, 20],
-    [8, 7],
-    [12, 8],
-    [12, 25],
+    { mes: 1, dia: 1, nombre: 'Año Nuevo' },
+    { mes: 5, dia: 1, nombre: 'Dia del Trabajo' },
+    { mes: 7, dia: 20, nombre: 'Independencia' },
+    { mes: 8, dia: 7, nombre: 'Batalla de Boyaca' },
+    { mes: 12, dia: 8, nombre: 'Inmaculada Concepcion' },
+    { mes: 12, dia: 25, nombre: 'Navidad' },
   ];
-  fijos.forEach(([m, d]) => festivos.push(new Date(anio, m - 1, d)));
+  fijos.forEach(f => {
+    festivos.push({
+      fecha: new Date(anio, f.mes - 1, f.dia),
+      nombre: f.nombre,
+    });
+  });
 
   const emiliani = [
-    [1, 6],
-    [3, 19],
-    [6, 29],
-    [8, 15],
-    [10, 12],
-    [11, 1],
-    [11, 11],
+    { mes: 1, dia: 6, nombre: 'Reyes Magos' },
+    { mes: 3, dia: 19, nombre: 'San Jose' },
+    { mes: 6, dia: 29, nombre: 'San Pedro y San Pablo' },
+    { mes: 8, dia: 15, nombre: 'Asuncion' },
+    { mes: 10, dia: 12, nombre: 'Dia de la Raza' },
+    { mes: 11, dia: 1, nombre: 'Todos los Santos' },
+    { mes: 11, dia: 11, nombre: 'Independencia de Cartagena' },
   ];
-  emiliani.forEach(([m, d]) => {
-    const fecha = new Date(anio, m - 1, d);
+  emiliani.forEach(f => {
+    const fecha = new Date(anio, f.mes - 1, f.dia);
     const dow = fecha.getDay();
     if (dow !== 1) {
       const diff = dow === 0 ? 1 : 8 - dow;
       fecha.setDate(fecha.getDate() + diff);
     }
-    festivos.push(fecha);
+    festivos.push({ fecha, nombre: f.nombre });
   });
 
   const pascua = calcularPascua(anio);
+
   const juevesSanto = new Date(pascua);
   juevesSanto.setDate(pascua.getDate() - 3);
+  festivos.push({ fecha: juevesSanto, nombre: 'Jueves Santo' });
+
   const viernesSanto = new Date(pascua);
   viernesSanto.setDate(pascua.getDate() - 2);
-  festivos.push(juevesSanto);
-  festivos.push(viernesSanto);
+  festivos.push({ fecha: viernesSanto, nombre: 'Viernes Santo' });
 
-  [39, 60, 68].forEach(offset => {
+  const pascuales = [
+    { offset: 39, nombre: 'Ascension del Señor' },
+    { offset: 60, nombre: 'Corpus Christi' },
+    { offset: 68, nombre: 'Sagrado Corazon' },
+  ];
+  pascuales.forEach(p => {
     const f = new Date(pascua);
-    f.setDate(pascua.getDate() + offset);
+    f.setDate(pascua.getDate() + p.offset);
     const dow = f.getDay();
     if (dow !== 1) {
       const diff = dow === 0 ? 1 : 8 - dow;
       f.setDate(f.getDate() + diff);
     }
-    festivos.push(f);
+    festivos.push({ fecha: f, nombre: p.nombre });
   });
 
   return festivos;
 }
 
-function getFestivosSet(anios) {
-  const set = new Set();
-  anios.forEach(anio => {
-    getFestivosColombiaAnio(anio).forEach(f => set.add(dateKey(f)));
+// Diccionario global de festivos: { 'YYYY-MM-DD': 'Nombre del festivo' }
+const FESTIVOS_INFO = {};
+[new Date().getFullYear(), new Date().getFullYear() + 1].forEach(anio => {
+  getFestivosColombiaAnio(anio).forEach(item => {
+    FESTIVOS_INFO[dateKey(item.fecha)] = item.nombre;
   });
-  return set;
-}
-
-function getNombreFestivo(fecha) {
-  const mesdia = dateKey(fecha).slice(5);
-  const nombres = {
-    '01-01': 'Año Nuevo',
-    '05-01': 'Dia del Trabajo',
-    '07-20': 'Independencia',
-    '08-07': 'Batalla de Boyaca',
-    '12-08': 'Inmaculada Concepcion',
-    '12-25': 'Navidad',
-    '01-06': 'Reyes Magos',
-    '03-19': 'San Jose',
-    '06-29': 'San Pedro y San Pablo',
-    '08-15': 'Asuncion',
-    '10-12': 'Dia de la Raza',
-    '11-01': 'Todos los Santos',
-    '11-11': 'Independencia de Cartagena',
-  };
-  return nombres[mesdia] || 'Festivo';
-}
-
-const FESTIVOS_SET = getFestivosSet([
-  new Date().getFullYear(),
-  new Date().getFullYear() + 1,
-]);
+});
 
 // ============================================
 // INIT
@@ -225,6 +212,7 @@ async function selectBarbero(b) {
   selectedTime = null;
   renderBarberos();
 
+  // Traer TODOS los festivos guardados del barbero (para saber cuales estan abiertos)
   const [serviciosRes, horariosRes, festivosRes] = await Promise.all([
     supabaseClient.from('servicios').select('*')
       .eq('negocio_id', negocio.id).eq('barbero_id', b.id).eq('activo', true)
@@ -233,7 +221,6 @@ async function selectBarbero(b) {
       .eq('negocio_id', negocio.id).eq('barbero_id', b.id),
     supabaseClient.from('barbero_festivos').select('*')
       .eq('barbero_id', b.id)
-      .eq('cerrado', true)
       .gte('fecha', dateKey(new Date())),
   ]);
 
@@ -301,9 +288,11 @@ function renderFechas() {
   const horariosPorDia = {};
   horarios.forEach(h => { horariosPorDia[h.dia_semana] = h; });
 
-  const festivosBloqueados = new Set(
-    (barberoFestivosActivos || []).map(f => f.fecha)
-  );
+  // Mapa de festivos con estado explicito guardado por el barbero
+  const festivosBarberoMap = {};
+  (barberoFestivosActivos || []).forEach(f => {
+    festivosBarberoMap[f.fecha] = f;
+  });
 
   let diasMostrados = 0;
 
@@ -316,21 +305,35 @@ function renderFechas() {
     if (!hDia || hDia.abre_minuto === null) continue;
 
     const keyFecha = dateKey(d);
-    const esFestivoColombia = FESTIVOS_SET.has(keyFecha);
-    const estaBloqueado = festivosBloqueados.has(keyFecha);
+    const esFestivoColombia = !!FESTIVOS_INFO[keyFecha];
+    const registroFestivo = festivosBarberoMap[keyFecha];
+
+    // Logica de bloqueo:
+    // - Si NO es festivo colombiano -> se muestra normal
+    // - Si es festivo colombiano y el barbero NO ha guardado nada -> CERRADO (por defecto)
+    // - Si es festivo colombiano y el barbero guardo cerrado=true -> CERRADO
+    // - Si es festivo colombiano y el barbero guardo cerrado=false -> ABIERTO
+    let estaCerradoPorFestivo = false;
+    if (esFestivoColombia) {
+      if (!registroFestivo) {
+        estaCerradoPorFestivo = true; // Por defecto cerrado
+      } else {
+        estaCerradoPorFestivo = registroFestivo.cerrado;
+      }
+    }
 
     const btn = document.createElement('button');
     btn.type = 'button';
 
-    if (esFestivoColombia && estaBloqueado) {
+    if (estaCerradoPorFestivo) {
       btn.className = 'fecha-option festivo-cerrado';
       btn.disabled = true;
       btn.innerHTML = `
         <span class="dow">${DOW_LABELS[dow]}</span>
         <span class="dnum">${d.getDate()}</span>
-        <span class="festivo-tag">Festivo</span>
+        <span class="festivo-tag">Cerrado</span>
       `;
-      btn.title = getNombreFestivo(d) + ' - Cerrado';
+      btn.title = FESTIVOS_INFO[keyFecha] + ' - Cerrado';
       scroll.appendChild(btn);
       diasMostrados++;
     } else {
@@ -345,7 +348,7 @@ function renderFechas() {
       `;
 
       if (esFestivoColombia) {
-        btn.title = getNombreFestivo(d) + ' - Abierto';
+        btn.title = FESTIVOS_INFO[keyFecha] + ' - Abierto';
       }
 
       btn.addEventListener('click', () => {
@@ -519,6 +522,31 @@ document.getElementById('reservaForm').addEventListener('submit', async (e) => {
   submitBtn.disabled = true;
   msg.textContent = 'Confirmando...';
   msg.className = 'form-msg info';
+
+  // Validacion extra: verificar que la fecha no sea festivo cerrado
+  const keyFechaSel = dateKey(selectedDate);
+  if (FESTIVOS_INFO[keyFechaSel]) {
+    const { data: festivoCheck } = await supabaseClient
+      .from('barbero_festivos')
+      .select('cerrado')
+      .eq('barbero_id', selectedBarbero.id)
+      .eq('fecha', keyFechaSel)
+      .maybeSingle();
+
+    const estaCerrado = !festivoCheck || festivoCheck.cerrado === true;
+
+    if (estaCerrado) {
+      msg.textContent = 'Ese dia el barbero no atiende (festivo). Elige otra fecha.';
+      msg.className = 'form-msg error';
+      submitBtn.disabled = false;
+      selectedDate = null;
+      selectedTime = null;
+      renderFechas();
+      renderHoras();
+      updateSummary();
+      return;
+    }
+  }
 
   const { data: citasData } = await supabaseClient
     .from('citas').select('hora_inicio, duracion')
