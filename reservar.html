@@ -11,7 +11,7 @@
 
 <!-- PWA -->
 <link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#16294f">
+<meta name="theme-color" content="#0a1628">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="CitaBarber">
@@ -25,95 +25,284 @@
 
 <div id="loadingView" class="loading-view">
   <div class="spinner"></div>
-  <p class="hint">Cargando barbería…</p>
+  <p class="hint">Cargando barberia…</p>
 </div>
 
 <div id="notFoundView" class="not-found-view" style="display:none;">
   <div>
-    <h1>Barbería no encontrada</h1>
-    <p>Verifica el enlace o pídele al dueño que te comparta la URL correcta.</p>
+    <h1>Barberia no encontrada</h1>
+    <p>Verifica el enlace o pidele al dueno que te comparta la URL correcta.</p>
   </div>
 </div>
 
 <div id="mainView" style="display:none;">
 
-  <section class="reservar-hero">
-    <div class="reservar-hero-stripe"></div>
-    <div class="reservar-hero-inner">
-      <img id="heroLogo" src="" alt="" style="display:none;">
-      <p class="reservar-eyebrow" id="heroCiudad">Barbería</p>
-      <h1 id="heroNombre">Cargando...</h1>
-      <p id="heroDescripcion"></p>
+  <!-- NAVBAR SUPERIOR -->
+  <header class="top-nav">
+    <div class="nav-inner">
+      <div class="nav-brand">
+        <div class="nav-logo" id="navLogo">
+          <img id="navLogoImg" src="" alt="" style="display:none;">
+          <span id="navLogoInitial">B</span>
+        </div>
+        <div class="nav-brand-text">
+          <span class="nav-eyebrow">Barberia</span>
+          <span class="nav-name" id="navBarberiaNombre">Cargando...</span>
+        </div>
+      </div>
+
+      <nav class="nav-links">
+        <a href="#inicio" class="nav-link active">Inicio</a>
+        <a href="#servicios" class="nav-link">Servicios</a>
+        <a href="#nosotros" class="nav-link">Nosotros</a>
+        <a href="#reservar" class="nav-link">Reservar</a>
+        <a href="#contacto" class="nav-link">Contacto</a>
+      </nav>
+
+      <a href="#reservar" class="btn-reserva-top">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="4" width="18" height="18" rx="2"/>
+          <path d="M16 2v4M8 2v4M3 10h18"/>
+        </svg>
+        Reservar cita
+      </a>
+
+      <button class="nav-menu-btn" id="navMenuBtn" aria-label="Menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <line x1="3" y1="12" x2="21" y2="12"/>
+          <line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero-premium" id="inicio">
+    <div class="hero-stripes"></div>
+    <div class="hero-content-wrap">
+      <div class="hero-text">
+        <span class="hero-eyebrow" id="heroEyebrow">Barberia</span>
+        <h1 id="heroNombre">Cargando...</h1>
+        <p class="hero-subtitle">Reserva tu cita en pocos clics.</p>
+        <p class="hero-desc" id="heroDescripcion">
+          Estilo, calidad y atencion personalizada.
+          Tu mejor version comienza aqui.
+        </p>
+
+        <div class="hero-actions">
+          <a href="#reservar" class="btn-hero btn-hero-primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2"/>
+              <path d="M16 2v4M8 2v4M3 10h18"/>
+            </svg>
+            Reservar cita
+          </a>
+          <a id="btnWhatsapp" href="#" target="_blank" class="btn-hero btn-hero-ghost">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M20.5 3.5A11.9 11.9 0 0012 0C5.4 0 .1 5.3.1 11.9c0 2.1.5 4.1 1.6 5.9L0 24l6.4-1.7a11.9 11.9 0 005.6 1.4c6.6 0 12-5.3 12-11.9 0-3.2-1.2-6.2-3.5-8.3z"/>
+            </svg>
+            Escribenos
+          </a>
+        </div>
+
+        <div class="hero-features">
+          <div class="feature-item">
+            <div class="feature-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            </div>
+            <div>
+              <strong>Profesionales</strong>
+              <span>Expertos en estilo</span>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+              </svg>
+            </div>
+            <div>
+              <strong>Calidad Premium</strong>
+              <span>Productos de primera</span>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+              </svg>
+            </div>
+            <div>
+              <strong>Ambiente Unico</strong>
+              <span>Comodidad y estilo</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-image-wrap">
+        <img
+          src="hero-barber.jpg"
+          alt="Barberia"
+          class="hero-image"
+        >
+      </div>
     </div>
   </section>
 
-  <main class="reservar-main">
+  <!-- SERVICIOS DESTACADOS -->
+  <section class="servicios-destacados" id="servicios">
+    <div class="section-inner">
+      <div class="section-header-center">
+        <span class="section-eyebrow-line">Nuestros servicios</span>
+      </div>
+      <div class="servicios-cards" id="serviciosCards">
+        <p class="hint">Cargando servicios...</p>
+      </div>
+    </div>
+  </section>
 
-    <section class="step-card">
-      <div class="step-label">
-        <span class="step-number">1</span>
-        Elige tu barbero
+  <!-- SOBRE NOSOTROS -->
+  <section class="sobre-nosotros" id="nosotros">
+    <div class="sobre-inner">
+      <div class="sobre-image-wrap">
+        <img
+          src="https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=800&q=80"
+          alt="Interior de la barberia"
+          class="sobre-image"
+        >
       </div>
-      <div id="barberosGrid" class="barberos-grid">
-        <p class="hint">Cargando barberos...</p>
-      </div>
-    </section>
+      <div class="sobre-content">
+        <span class="sobre-eyebrow">Sobre nosotros</span>
+        <h2>Pasion por el estilo, compromiso con cada detalle.</h2>
+        <p id="sobreDescripcion">
+          En nuestra barberia ofrecemos mas que un corte, brindamos una
+          experiencia unica en cada visita. Nuestro equipo esta comprometido
+          con tu estilo y satisfaccion.
+        </p>
 
-    <section class="step-card">
-      <div class="step-label">
-        <span class="step-number">2</span>
-        Elige el servicio
-      </div>
-      <div id="serviciosGrid" class="servicios-grid">
-        <p class="hint">Selecciona primero un barbero.</p>
-      </div>
-    </section>
-
-    <section class="step-card">
-      <div class="step-label">
-        <span class="step-number">3</span>
-        Elige la fecha
-      </div>
-      <div id="fechasScroll" class="fechas-scroll">
-        <p class="hint">Selecciona primero un barbero.</p>
-      </div>
-    </section>
-
-    <section class="step-card">
-      <div class="step-label">
-        <span class="step-number">4</span>
-        Elige la hora
-      </div>
-      <div id="horasGrid" class="horas-grid">
-        <p class="hint">Elige un servicio y una fecha para ver los horarios.</p>
-      </div>
-    </section>
-
-    <section class="step-card">
-      <div class="step-label">
-        <span class="step-number">5</span>
-        Tus datos
-      </div>
-      <form id="reservaForm" class="datos-form">
-        <div class="form-row">
-          <div class="field">
-            <label for="clientName">Nombre completo</label>
-            <input type="text" id="clientName" required placeholder="Tu nombre">
+        <div class="stats-grid">
+          <div class="stat-item">
+            <div class="stat-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+            </div>
+            <div>
+              <strong id="statClientes">500+</strong>
+              <span>Clientes felices</span>
+            </div>
           </div>
-          <div class="field">
-            <label for="clientPhone">Número de teléfono</label>
-            <input type="tel" id="clientPhone" required placeholder="3000000000">
+          <div class="stat-item">
+            <div class="stat-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="4" width="18" height="18" rx="2"/>
+                <path d="M16 2v4M8 2v4M3 10h18"/>
+              </svg>
+            </div>
+            <div>
+              <strong id="statCitas">1000+</strong>
+              <span>Citas realizadas</span>
+            </div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+              </svg>
+            </div>
+            <div>
+              <strong>5.0</strong>
+              <span>Calificacion</span>
+            </div>
           </div>
         </div>
-        <div id="bookingSummary" class="booking-summary" style="display:none;"></div>
-        <button type="submit" class="btn btn-primary btn-block btn-lg">Confirmar mi cita</button>
-        <p class="form-msg" id="formMsg"></p>
-      </form>
-    </section>
+      </div>
+    </div>
+  </section>
 
-  </main>
+  <!-- SECCION RESERVAR (formulario) -->
+  <section class="reservar-section" id="reservar">
+    <div class="section-inner">
+      <div class="section-header-center">
+        <span class="section-eyebrow-line">Reserva tu cita</span>
+        <h2 class="section-title">Elige a tu barbero y horario</h2>
+      </div>
 
-  <section class="info-negocio">
+      <main class="reservar-main">
+
+        <section class="step-card">
+          <div class="step-label">
+            <span class="step-number">1</span>
+            Elige tu barbero
+          </div>
+          <div id="barberosGrid" class="barberos-grid">
+            <p class="hint">Cargando barberos...</p>
+          </div>
+        </section>
+
+        <section class="step-card">
+          <div class="step-label">
+            <span class="step-number">2</span>
+            Elige el servicio
+          </div>
+          <div id="serviciosGrid" class="servicios-grid">
+            <p class="hint">Selecciona primero un barbero.</p>
+          </div>
+        </section>
+
+        <section class="step-card">
+          <div class="step-label">
+            <span class="step-number">3</span>
+            Elige la fecha
+          </div>
+          <div id="fechasScroll" class="fechas-scroll">
+            <p class="hint">Selecciona primero un barbero.</p>
+          </div>
+        </section>
+
+        <section class="step-card">
+          <div class="step-label">
+            <span class="step-number">4</span>
+            Elige la hora
+          </div>
+          <div id="horasGrid" class="horas-grid">
+            <p class="hint">Elige un servicio y una fecha para ver los horarios.</p>
+          </div>
+        </section>
+
+        <section class="step-card">
+          <div class="step-label">
+            <span class="step-number">5</span>
+            Tus datos
+          </div>
+          <form id="reservaForm" class="datos-form">
+            <div class="form-row">
+              <div class="field">
+                <label for="clientName">Nombre completo</label>
+                <input type="text" id="clientName" required placeholder="Tu nombre">
+              </div>
+              <div class="field">
+                <label for="clientPhone">Numero de telefono</label>
+                <input type="tel" id="clientPhone" required placeholder="3000000000">
+              </div>
+            </div>
+            <div id="bookingSummary" class="booking-summary" style="display:none;"></div>
+            <button type="submit" class="btn btn-primary btn-block btn-lg">Confirmar mi cita</button>
+            <p class="form-msg" id="formMsg"></p>
+          </form>
+        </section>
+
+      </main>
+    </div>
+  </section>
+
+  <!-- CONTACTO / INFO -->
+  <section class="info-negocio" id="contacto">
     <div class="info-negocio-inner">
       <div class="info-block">
         <h3>
@@ -121,9 +310,9 @@
             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
             <circle cx="12" cy="10" r="3"/>
           </svg>
-          Ubicación
+          Ubicacion
         </h3>
-        <p id="infoDireccion">Sin dirección registrada</p>
+        <p id="infoDireccion">Sin direccion registrada</p>
         <p id="infoCiudad"></p>
         <p id="infoTelefono"></p>
       </div>
@@ -133,7 +322,7 @@
             <circle cx="12" cy="12" r="10"/>
             <path d="M12 6v6l4 2"/>
           </svg>
-          Horario de atención
+          Horario de atencion
         </h3>
         <ul class="horario-lista" id="horarioLista"></ul>
       </div>
@@ -146,12 +335,15 @@
 
 </div>
 
+<!-- SUCCESS VIEW -->
 <div id="successView" style="display:none;">
-  <section class="reservar-hero">
-    <div class="reservar-hero-stripe"></div>
-    <div class="reservar-hero-inner">
-      <p class="reservar-eyebrow">Reserva confirmada</p>
-      <h1 id="successNombreNegocio">Barbería</h1>
+  <section class="hero-premium">
+    <div class="hero-stripes"></div>
+    <div class="hero-content-wrap" style="justify-content: center;">
+      <div class="hero-text" style="text-align: center; max-width: 700px;">
+        <span class="hero-eyebrow">Reserva confirmada</span>
+        <h1 id="successNombreNegocio">Barberia</h1>
+      </div>
     </div>
   </section>
 
@@ -162,7 +354,7 @@
           <polyline points="20 6 9 17 4 12"/>
         </svg>
       </div>
-      <h2 id="successTitulo">¡Tu cita está confirmada!</h2>
+      <h2 id="successTitulo">Tu cita esta confirmada!</h2>
       <p>Guarda estos datos para tu cita:</p>
       <div class="success-detail" id="successDetail"></div>
       <a href="#" onclick="location.reload()" class="btn btn-ghost">Agendar otra cita</a>
@@ -178,8 +370,8 @@
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js')
-      .then(reg => console.log('✅ SW registrado:', reg.scope))
-      .catch(err => console.error('❌ SW error:', err));
+      .then(reg => console.log('SW registrado:', reg.scope))
+      .catch(err => console.error('SW error:', err));
   });
 }
 </script>
