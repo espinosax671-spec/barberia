@@ -76,74 +76,66 @@ function getFestivosColombiaAnio(anio) {
   const festivos = [];
 
   const fijos = [
-    [1, 1],
-    [5, 1],
-    [7, 20],
-    [8, 7],
-    [12, 8],
-    [12, 25],
+    { mes: 1, dia: 1, nombre: 'Año Nuevo' },
+    { mes: 5, dia: 1, nombre: 'Dia del Trabajo' },
+    { mes: 7, dia: 20, nombre: 'Independencia' },
+    { mes: 8, dia: 7, nombre: 'Batalla de Boyaca' },
+    { mes: 12, dia: 8, nombre: 'Inmaculada Concepcion' },
+    { mes: 12, dia: 25, nombre: 'Navidad' },
   ];
-  fijos.forEach(([m, d]) => festivos.push(new Date(anio, m - 1, d)));
+  fijos.forEach(f => {
+    festivos.push({
+      fecha: new Date(anio, f.mes - 1, f.dia),
+      nombre: f.nombre,
+    });
+  });
 
   const emiliani = [
-    [1, 6],
-    [3, 19],
-    [6, 29],
-    [8, 15],
-    [10, 12],
-    [11, 1],
-    [11, 11],
+    { mes: 1, dia: 6, nombre: 'Reyes Magos' },
+    { mes: 3, dia: 19, nombre: 'San Jose' },
+    { mes: 6, dia: 29, nombre: 'San Pedro y San Pablo' },
+    { mes: 8, dia: 15, nombre: 'Asuncion' },
+    { mes: 10, dia: 12, nombre: 'Dia de la Raza' },
+    { mes: 11, dia: 1, nombre: 'Todos los Santos' },
+    { mes: 11, dia: 11, nombre: 'Independencia de Cartagena' },
   ];
-  emiliani.forEach(([m, d]) => {
-    const fecha = new Date(anio, m - 1, d);
+  emiliani.forEach(f => {
+    const fecha = new Date(anio, f.mes - 1, f.dia);
     const dow = fecha.getDay();
     if (dow !== 1) {
       const diff = dow === 0 ? 1 : 8 - dow;
       fecha.setDate(fecha.getDate() + diff);
     }
-    festivos.push(fecha);
+    festivos.push({ fecha, nombre: f.nombre });
   });
 
   const pascua = calcularPascua(anio);
+
   const juevesSanto = new Date(pascua);
   juevesSanto.setDate(pascua.getDate() - 3);
+  festivos.push({ fecha: juevesSanto, nombre: 'Jueves Santo' });
+
   const viernesSanto = new Date(pascua);
   viernesSanto.setDate(pascua.getDate() - 2);
-  festivos.push(juevesSanto);
-  festivos.push(viernesSanto);
+  festivos.push({ fecha: viernesSanto, nombre: 'Viernes Santo' });
 
-  [39, 60, 68].forEach(offset => {
+  const pascuales = [
+    { offset: 39, nombre: 'Ascension del Señor' },
+    { offset: 60, nombre: 'Corpus Christi' },
+    { offset: 68, nombre: 'Sagrado Corazon' },
+  ];
+  pascuales.forEach(p => {
     const f = new Date(pascua);
-    f.setDate(pascua.getDate() + offset);
+    f.setDate(pascua.getDate() + p.offset);
     const dow = f.getDay();
     if (dow !== 1) {
       const diff = dow === 0 ? 1 : 8 - dow;
       f.setDate(f.getDate() + diff);
     }
-    festivos.push(f);
+    festivos.push({ fecha: f, nombre: p.nombre });
   });
 
   return festivos;
-}
-
-function getNombreFestivo(fecha) {
-  const mesdia = dateKey(fecha).slice(5);
-  const nombres = {
-    '01-01': 'Año Nuevo',
-    '05-01': 'Dia del Trabajo',
-    '07-20': 'Independencia',
-    '08-07': 'Batalla de Boyaca',
-    '12-08': 'Inmaculada Concepcion',
-    '12-25': 'Navidad',
-    '01-06': 'Reyes Magos',
-    '03-19': 'San Jose',
-    '06-29': 'San Pedro y San Pablo',
-    '08-15': 'Asuncion',
-    '10-12': 'Dia de la Raza',
-    '11-01': 'Todos los Santos',
-    '11-11': 'Independencia de Cartagena',
-  };
-  return nombres[mesdia] || 'Festivo';
 }
 
 // ============================================
@@ -891,7 +883,9 @@ async function renderSeccionFestivos(container) {
   const festivosColombia = [
     ...getFestivosColombiaAnio(anioActual),
     ...getFestivosColombiaAnio(anioActual + 1),
-  ].filter(f => f >= hoy).sort((a, b) => a - b);
+  ]
+  .filter(f => f.fecha >= hoy)
+  .sort((a, b) => a.fecha - b.fecha);
 
   const seccion = document.createElement('div');
   seccion.className = 'festivos-seccion';
@@ -900,7 +894,7 @@ async function renderSeccionFestivos(container) {
       <h3>Festivos colombianos</h3>
       <p class="festivos-desc">
         Indica si el barbero trabaja o descansa en cada festivo.
-        Por defecto estan cerrados.
+        Por defecto estan cerrados y los clientes no podran reservar.
       </p>
     </div>
     <div class="festivos-lista" id="festivosListaPanel"></div>
@@ -912,22 +906,21 @@ async function renderSeccionFestivos(container) {
 
   const lista = seccion.querySelector('#festivosListaPanel');
 
-  festivosColombia.forEach(fecha => {
-    const key = dateKey(fecha);
+  festivosColombia.forEach(item => {
+    const key = dateKey(item.fecha);
     const guardado = festivosMap[key];
     const cerrado = guardado ? guardado.cerrado : true;
 
-    const fechaLabel = fecha.toLocaleDateString('es-CO', {
+    const fechaLabel = item.fecha.toLocaleDateString('es-CO', {
       weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
     });
-    const nombreFestivo = getNombreFestivo(fecha);
 
     const row = document.createElement('div');
     row.className = 'festivo-row ' + (cerrado ? 'cerrado' : 'abierto');
     row.dataset.fecha = key;
     row.innerHTML = `
       <div class="festivo-info">
-        <strong>${nombreFestivo}</strong>
+        <strong>${item.nombre}</strong>
         <span>${fechaLabel}</span>
       </div>
       <div class="festivo-toggle">
