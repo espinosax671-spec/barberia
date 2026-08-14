@@ -94,6 +94,18 @@
   color: var(--gray-500);
 }
 
+.logout-link {
+  background: none;
+  border: none;
+  color: var(--red);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-family: var(--font-body);
+  font-weight: 500;
+}
+
+.logout-link:hover { text-decoration: underline; }
+
 /* ===== TABS ===== */
 .agenda-tabs {
   background: var(--white);
