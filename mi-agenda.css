@@ -1,11 +1,34 @@
 /* ============================================
-   MI AGENDA - Panel Barbero
+   VARIABLES
    ============================================ */
+:root {
+  --sidebar-bg: #0a1628;
+  --sidebar-bg-2: #0f1f36;
+  --sidebar-border: rgba(255,255,255,0.08);
+  --sidebar-text: #b8c5d6;
+  --sidebar-text-dim: #5a6b82;
+  --sidebar-accent: #d63647;
+  --sidebar-white: #ffffff;
+  --sidebar-width: 260px;
+  --main-bg: #f5f7fa;
+  --card-bg: #ffffff;
+  --card-border: #e5e9f0;
+  --text-dark: #0a1628;
+  --text-gray: #6b7a8d;
+  --text-light: #9ca8b8;
+  --accent-blue: #2856d6;
+  --accent-green: #16a34a;
+  --accent-red: #d63647;
+}
 
+/* ============================================
+   BODY & LAYOUT
+   ============================================ */
 .agenda-body {
-  background: var(--off-white);
+  background: var(--main-bg);
   min-height: 100vh;
   font-family: var(--font-body);
+  margin: 0;
 }
 
 .agenda-loading {
@@ -17,31 +40,244 @@
   gap: 12px;
 }
 
-/* ===== HEADER ===== */
-.agenda-header {
-  background: var(--white);
-  border-bottom: 1px solid var(--line);
-  padding: 16px 24px;
+.agenda-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ============================================
+   SIDEBAR
+   ============================================ */
+.sidebar {
+  width: var(--sidebar-width);
+  background: var(--sidebar-bg);
+  color: var(--sidebar-text);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 50;
+  overflow-y: auto;
+}
+
+.sidebar-top {
+  padding: 24px 20px;
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 32px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--sidebar-border);
+}
+
+.sidebar-logo-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--sidebar-white);
+  color: var(--sidebar-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1rem;
+  overflow: hidden;
+  border: 2px solid var(--sidebar-accent);
+  flex-shrink: 0;
+}
+
+.sidebar-logo-circle img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sidebar-brand-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.sidebar-brand-name {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  color: var(--sidebar-white);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar-brand-sub {
+  font-size: 0.7rem;
+  color: var(--sidebar-text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* SIDEBAR NAV */
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sidebar-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: none;
+  border: none;
+  color: var(--sidebar-text);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition: all 0.15s;
+  width: 100%;
+  text-align: left;
+}
+
+.sidebar-nav-item:hover {
+  background: var(--sidebar-bg-2);
+  color: var(--sidebar-white);
+}
+
+.sidebar-nav-item.active {
+  background: var(--sidebar-accent);
+  color: var(--sidebar-white);
+}
+
+.sidebar-nav-item svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.sidebar-nav-item span:first-of-type {
+  flex: 1;
+}
+
+.sidebar-badge {
+  background: rgba(255,255,255,0.2);
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  min-width: 22px;
+  text-align: center;
+}
+
+.sidebar-nav-item.active .sidebar-badge {
+  background: rgba(255,255,255,0.3);
+}
+
+/* SIDEBAR BOTTOM */
+.sidebar-bottom {
+  padding: 20px;
+  border-top: 1px solid var(--sidebar-border);
+}
+
+.sidebar-info {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sidebar-info-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.78rem;
+  color: var(--sidebar-text-dim);
+}
+
+.sidebar-info-item svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: var(--sidebar-accent);
+}
+
+/* SIDEBAR OVERLAY (mobile) */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 40;
+}
+
+.sidebar-overlay.show {
+  display: block;
+}
+
+/* ============================================
+   MAIN CONTENT
+   ============================================ */
+.main-content {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* HEADER */
+.main-header {
+  background: var(--card-bg);
+  border-bottom: 1px solid var(--card-border);
+  padding: 16px 32px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 16px;
-  flex-wrap: wrap;
-  box-shadow: var(--shadow-sm);
 }
 
-.agenda-header-left {
+.header-left {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.barbero-avatar-header {
-  width: 44px;
-  height: 44px;
+.mobile-menu-btn {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  color: var(--text-dark);
+}
+
+.mobile-menu-btn svg {
+  width: 24px;
+  height: 24px;
+}
+
+.header-barbero {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.header-avatar {
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
-  background: var(--blue-soft);
-  color: var(--blue);
+  background: var(--sidebar-bg);
+  color: var(--sidebar-white);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -49,133 +285,139 @@
   font-weight: 700;
   font-size: 1.1rem;
   overflow: hidden;
+  border: 3px solid var(--card-border);
   flex-shrink: 0;
 }
 
-.barbero-avatar-header img {
+.header-avatar img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.header-info {
+.header-barbero-info {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
 
-.header-info .brand {
+.header-barbero-info strong {
   font-family: var(--font-display);
   font-size: 1.15rem;
-  font-weight: 700;
-  color: var(--navy);
+  color: var(--text-dark);
   text-transform: uppercase;
   letter-spacing: 0.03em;
-  line-height: 1;
 }
 
-.header-info .brand-tag {
-  font-family: var(--font-body);
-  font-size: 0.72rem;
+.header-barbero-info span {
+  font-size: 0.78rem;
+  color: var(--text-gray);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--gray-500);
+  letter-spacing: 0.05em;
 }
 
-.agenda-header-right {
+.header-right {
   display: flex;
   align-items: center;
   gap: 14px;
-  flex-wrap: wrap;
 }
 
-.agenda-user {
+.header-email {
   font-size: 0.85rem;
-  color: var(--gray-500);
+  color: var(--text-gray);
+  font-style: italic;
 }
 
-.logout-link {
+.logout-btn {
   background: none;
   border: none;
-  color: var(--red);
+  color: var(--accent-red);
   cursor: pointer;
   font-size: 0.85rem;
   font-family: var(--font-body);
-  font-weight: 500;
+  font-weight: 600;
+  font-style: italic;
 }
 
-.logout-link:hover { text-decoration: underline; }
+.logout-btn:hover { text-decoration: underline; }
 
-/* ===== TABS ===== */
-.agenda-tabs {
-  background: var(--white);
-  border-bottom: 1px solid var(--line);
-  padding: 0 24px;
+/* TABS */
+.main-tabs {
+  background: var(--card-bg);
+  border-bottom: 1px solid var(--card-border);
+  padding: 0 32px;
   display: flex;
   gap: 4px;
-  overflow-x: auto;
-  scrollbar-width: none;
 }
-.agenda-tabs::-webkit-scrollbar { display: none; }
 
-.agenda-tabs .tab-btn {
+.main-tab {
   background: none;
   border: none;
-  padding: 14px 18px;
+  padding: 14px 20px;
   cursor: pointer;
-  color: var(--gray-500);
+  color: var(--text-gray);
   font-family: var(--font-body);
   font-size: 0.92rem;
   font-weight: 500;
   border-bottom: 3px solid transparent;
-  white-space: nowrap;
   transition: all 0.15s;
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.agenda-tabs .tab-btn:hover { color: var(--navy); }
-.agenda-tabs .tab-btn.active {
-  color: var(--red);
-  border-bottom-color: var(--red);
+.main-tab:hover { color: var(--text-dark); }
+
+.main-tab.active {
+  color: var(--accent-red);
+  border-bottom-color: var(--accent-red);
 }
 
 .tab-count {
-  background: var(--red);
-  color: var(--white);
+  background: var(--accent-red);
+  color: white;
   font-size: 0.7rem;
   padding: 2px 8px;
   border-radius: 10px;
   font-weight: 700;
-  min-width: 20px;
-  text-align: center;
 }
 
-/* ===== MAIN ===== */
-.agenda-main {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 24px;
+/* BODY */
+.main-body {
+  flex: 1;
+  padding: 28px 32px;
+  max-width: 1000px;
 }
 
-.agenda-section-header {
+.content-header {
   margin-bottom: 20px;
 }
 
-.agenda-section-header h1 {
+.content-header h1 {
   font-family: var(--font-display);
-  font-size: 1.8rem;
-  color: var(--navy);
+  font-size: 1.6rem;
+  color: var(--text-dark);
   text-transform: uppercase;
   letter-spacing: 0.03em;
-  margin: 0 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
 }
 
-/* ===== FILTER BAR ===== */
+.content-header h1 svg {
+  width: 24px;
+  height: 24px;
+  color: var(--accent-red);
+}
+
+/* ============================================
+   FILTER BAR
+   ============================================ */
 .filter-bar {
   display: flex;
   gap: 8px;
+  margin-bottom: 20px;
   overflow-x: auto;
   scrollbar-width: none;
   padding-bottom: 4px;
@@ -183,13 +425,13 @@
 .filter-bar::-webkit-scrollbar { display: none; }
 
 .filter-chip {
-  background: var(--white);
-  border: 1px solid var(--line);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
   padding: 8px 16px;
   border-radius: 20px;
   font-size: 0.85rem;
   cursor: pointer;
-  color: var(--gray-500);
+  color: var(--text-gray);
   font-family: var(--font-body);
   transition: all 0.15s;
   display: flex;
@@ -198,11 +440,12 @@
   white-space: nowrap;
 }
 
-.filter-chip:hover { border-color: var(--navy); }
+.filter-chip:hover { border-color: var(--text-dark); }
+
 .filter-chip.active {
-  background: var(--navy);
-  color: var(--white);
-  border-color: var(--navy);
+  background: var(--text-dark);
+  color: white;
+  border-color: var(--text-dark);
 }
 
 .filter-chip .count {
@@ -214,52 +457,69 @@
 }
 
 .filter-chip:not(.active) .count {
-  background: var(--off-white);
-  color: var(--navy);
+  background: var(--main-bg);
+  color: var(--text-dark);
 }
 
-/* ===== CITAS ===== */
+/* ============================================
+   CITAS LIST
+   ============================================ */
 .citas-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .cita-card {
-  background: var(--white);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  padding: 16px 20px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  padding: 18px 22px;
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 16px;
   transition: box-shadow 0.15s;
 }
 
-.cita-card:hover { box-shadow: var(--shadow-sm); }
-.cita-card.completada { opacity: 0.7; border-left: 3px solid var(--success); }
-.cita-card.cancelada { opacity: 0.6; border-left: 3px solid var(--red); }
-.cita-card.confirmada { border-left: 3px solid var(--blue); }
+.cita-card:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+}
+
+.cita-card.completada {
+  border-left: 4px solid var(--accent-green);
+  opacity: 0.8;
+}
+
+.cita-card.cancelada {
+  border-left: 4px solid var(--accent-red);
+  opacity: 0.6;
+}
+
+.cita-card.confirmada {
+  border-left: 4px solid var(--accent-blue);
+}
 
 .cita-card.siguiente {
-  border: 2px solid var(--red);
-  box-shadow: 0 0 0 4px var(--red-soft);
+  border: 2px solid var(--accent-red);
+  box-shadow: 0 0 0 4px rgba(214, 54, 71, 0.1);
 }
 
 .cita-hora-badge {
-  background: var(--navy);
-  color: var(--white);
-  padding: 10px 14px;
-  border-radius: var(--radius);
+  background: var(--sidebar-bg);
+  color: white;
+  padding: 12px 16px;
+  border-radius: 10px;
   font-family: var(--font-display);
   font-weight: 700;
   font-size: 0.95rem;
   white-space: nowrap;
   flex-shrink: 0;
+  text-align: center;
+  min-width: 70px;
 }
 
 .cita-card.siguiente .cita-hora-badge {
-  background: var(--red);
+  background: var(--accent-red);
 }
 
 .cita-info {
@@ -279,32 +539,39 @@
 }
 
 .cita-info-top strong {
-  color: var(--navy);
+  color: var(--text-dark);
   font-size: 1rem;
+  font-weight: 700;
 }
 
 .cita-info span {
   font-size: 0.85rem;
-  color: var(--gray-500);
+  color: var(--text-gray);
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .cita-info a {
-  color: var(--blue);
+  color: var(--accent-blue);
   font-weight: 500;
+  text-decoration: none;
 }
+
 .cita-info a:hover { text-decoration: underline; }
 
 .cita-badge {
-  padding: 2px 10px;
+  padding: 3px 12px;
   border-radius: 10px;
   font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
-.cita-badge.confirmada { background: var(--blue-soft); color: var(--blue); }
-.cita-badge.completada { background: var(--success-soft); color: var(--success); }
-.cita-badge.cancelada { background: var(--red-soft); color: var(--red); }
+
+.cita-badge.confirmada { background: #dbeafe; color: var(--accent-blue); }
+.cita-badge.completada { background: #dcfce7; color: var(--accent-green); }
+.cita-badge.cancelada { background: #fee2e2; color: var(--accent-red); }
 
 .cita-actions {
   display: flex;
@@ -314,59 +581,69 @@
 
 .complete-btn,
 .cancel-btn {
-  padding: 6px 12px;
-  border-radius: var(--radius);
+  padding: 8px 14px;
+  border-radius: 8px;
   font-size: 0.8rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  border: 1px solid var(--line);
-  background: var(--white);
+  border: 1px solid var(--card-border);
+  background: var(--card-bg);
   font-family: var(--font-body);
   transition: all 0.15s;
 }
 
-.complete-btn { color: var(--success); border-color: var(--success); }
-.complete-btn:hover { background: var(--success); color: var(--white); }
+.complete-btn { color: var(--accent-green); border-color: var(--accent-green); }
+.complete-btn:hover { background: var(--accent-green); color: white; }
 
-.cancel-btn { color: var(--red); border-color: var(--red); }
-.cancel-btn:hover { background: var(--red); color: var(--white); }
+.cancel-btn { color: var(--accent-red); border-color: var(--accent-red); }
+.cancel-btn:hover { background: var(--accent-red); color: white; }
 
-/* ===== EMPTY STATE ===== */
+/* ============================================
+   EMPTY STATE
+   ============================================ */
 .empty-state {
   text-align: center;
   padding: 60px 20px;
-  color: var(--gray-500);
+  color: var(--text-gray);
 }
 
-.empty-state svg {
-  width: 60px;
-  height: 60px;
-  color: var(--gray-400);
-  margin-bottom: 16px;
+.empty-state-icon {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 20px;
+  color: var(--card-border);
 }
 
 .empty-state h3 {
-  color: var(--navy);
+  color: var(--text-dark);
   margin-bottom: 8px;
-  font-size: 1.2rem;
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
-.empty-state p { font-size: 0.9rem; }
+.empty-state p {
+  font-size: 0.9rem;
+  color: var(--text-gray);
+}
 
-/* ===== PERFIL FORM ===== */
+/* ============================================
+   PERFIL FORM
+   ============================================ */
 .perfil-form {
-  background: var(--white);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  padding: 24px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  padding: 28px;
   max-width: 600px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  margin-bottom: 24px;
+  gap: 18px;
+  margin-bottom: 28px;
 }
 
-.foto-upload-field { margin-bottom: 8px; }
+.foto-upload-field { margin-bottom: 4px; }
 
 .foto-upload {
   display: flex;
@@ -379,8 +656,8 @@
   width: 100px;
   height: 100px;
   border-radius: 50%;
-  background: var(--blue-soft);
-  border: 2px dashed var(--line);
+  background: var(--sidebar-bg);
+  border: 3px solid var(--card-border);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -391,7 +668,7 @@
 .foto-initials {
   font-family: var(--font-display);
   font-size: 2rem;
-  color: var(--blue);
+  color: white;
   font-weight: 700;
 }
 
@@ -403,7 +680,102 @@
   gap: 6px;
 }
 
-/* ===== PASSWORD SECTION ===== */
+.btn.btn-blue {
+  background: var(--accent-blue);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition: all 0.15s;
+}
+
+.btn.btn-blue:hover { opacity: 0.9; }
+
+.btn.btn-sm { padding: 6px 14px; font-size: 0.8rem; }
+
+.btn.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--card-border);
+  color: var(--text-gray);
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  transition: all 0.15s;
+}
+
+.btn.btn-ghost:hover { border-color: var(--text-dark); color: var(--text-dark); }
+
+.perfil-form .field label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-bottom: 6px;
+}
+
+.perfil-form input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-family: var(--font-body);
+  color: var(--text-dark);
+  background: var(--main-bg);
+}
+
+.perfil-form input:focus {
+  outline: none;
+  border-color: var(--accent-blue);
+}
+
+.field-hint {
+  font-size: 0.78rem;
+  color: var(--text-light);
+  margin-top: 4px;
+  display: block;
+}
+
+.btn.btn-primary {
+  background: var(--accent-red);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition: all 0.15s;
+}
+
+.btn.btn-primary:hover {
+  background: #b82838;
+  transform: translateY(-1px);
+}
+
+.btn.btn-dark {
+  background: var(--text-dark);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition: all 0.15s;
+}
+
+.btn.btn-dark:hover { opacity: 0.9; }
+
+/* PASSWORD SECTION */
 .password-section {
   max-width: 600px;
 }
@@ -411,48 +783,19 @@
 .password-section h2 {
   font-family: var(--font-display);
   font-size: 1.2rem;
-  color: var(--navy);
+  color: var(--text-dark);
   text-transform: uppercase;
   letter-spacing: 0.03em;
-  margin-bottom: 12px;
-}
-
-/* ===== TOAST ===== */
-#toastContainer {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  z-index: 1000;
-}
-
-.toast {
-  background: var(--navy);
-  color: var(--white);
-  padding: 12px 20px;
-  border-radius: var(--radius);
-  font-size: 0.9rem;
-  box-shadow: var(--shadow-lg);
-  animation: toastIn 0.3s ease;
-}
-
-.toast.error { background: var(--red); }
-.toast.success { background: var(--success); }
-
-@keyframes toastIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  margin-bottom: 16px;
 }
 
 /* ============================================
-   FESTIVOS - AGENDA BARBERO
+   FESTIVOS
    ============================================ */
 .festivos-agenda-seccion {
   margin-top: 32px;
   padding-top: 24px;
-  border-top: 1px solid var(--line);
+  border-top: 1px solid var(--card-border);
   max-width: 600px;
 }
 
@@ -460,7 +803,7 @@
   font-family: var(--font-display);
   font-size: 1.2rem;
   font-weight: 700;
-  color: var(--navy);
+  color: var(--text-dark);
   text-transform: uppercase;
   letter-spacing: 0.03em;
   margin-bottom: 6px;
@@ -469,7 +812,7 @@
 .festivos-hint {
   margin-bottom: 16px;
   display: block;
-  color: var(--gray-500);
+  color: var(--text-gray);
   font-size: 0.85rem;
 }
 
@@ -486,8 +829,8 @@
   justify-content: space-between;
   padding: 14px 16px;
   border-radius: 12px;
-  border: 1px solid var(--line);
-  background: var(--white);
+  border: 1px solid var(--card-border);
+  background: var(--card-bg);
   transition: all 0.2s;
 }
 
@@ -505,12 +848,12 @@
   display: block;
   font-size: 0.9rem;
   margin-bottom: 2px;
-  color: var(--navy);
+  color: var(--text-dark);
 }
 
 .festivo-agenda-info span {
   font-size: 0.78rem;
-  color: var(--gray-500);
+  color: var(--text-gray);
   text-transform: capitalize;
 }
 
@@ -529,11 +872,11 @@
 }
 
 .label-cerrado { color: #9ca3af; }
-.label-abierto { color: #16a34a; }
+.label-abierto { color: var(--accent-green); }
 
 .festivos-guardar-btn { margin-top: 16px; }
 
-/* ===== TOGGLE SWITCH ===== */
+/* TOGGLE SWITCH */
 .toggle-switch {
   position: relative;
   display: inline-block;
@@ -571,20 +914,76 @@
 }
 
 .toggle-switch input:checked + .toggle-slider {
-  background: #16a34a;
+  background: var(--accent-green);
 }
 
 .toggle-switch input:checked + .toggle-slider:before {
   transform: translateX(20px);
 }
 
-/* ===== RESPONSIVE ===== */
+/* ============================================
+   TOAST
+   ============================================ */
+#toastContainer {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 1000;
+}
+
+.toast {
+  background: var(--text-dark);
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  animation: toastIn 0.3s ease;
+}
+
+.toast.error { background: var(--accent-red); }
+.toast.success { background: var(--accent-green); }
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 900px) {
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .main-content {
+    margin-left: 0;
+  }
+
+  .mobile-menu-btn { display: block; }
+}
+
 @media (max-width: 640px) {
-  .agenda-header { padding: 12px 16px; }
-  .header-info .brand { font-size: 1rem; }
-  .agenda-main { padding: 16px; }
-  .agenda-section-header h1 { font-size: 1.4rem; }
-  .cita-card { flex-direction: column; align-items: flex-start; }
-  .cita-actions { width: 100%; justify-content: flex-end; }
+  .main-header { padding: 12px 16px; }
+  .main-tabs { padding: 0 16px; }
+  .main-body { padding: 20px 16px; }
+  .header-email { display: none; }
+  .header-barbero-info strong { font-size: 1rem; }
+  .cita-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
   .cita-hora-badge { align-self: flex-start; }
+  .cita-actions { width: 100%; justify-content: flex-end; }
+  .perfil-form { padding: 20px; }
 }
