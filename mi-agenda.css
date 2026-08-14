@@ -1,79 +1,527 @@
-.festivos-seccion {
-  margin-top: 32px;
-  padding-top: 24px;
-  border-top: 1px solid var(--border);
+/* ============================================
+   MI AGENDA - Panel Barbero
+   ============================================ */
+
+.agenda-body {
+  background: var(--off-white);
+  min-height: 100vh;
+  font-family: var(--font-body);
 }
 
-.festivos-header h3 {
-  font-size: 1rem;
-  font-weight: 600;
-  margin-bottom: 6px;
+.agenda-loading {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.festivos-desc {
-  color: var(--gray-500);
-  font-size: 0.85rem;
-  margin-bottom: 16px;
+/* ===== HEADER ===== */
+.agenda-header {
+  background: var(--white);
+  border-bottom: 1px solid var(--line);
+  padding: 16px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  box-shadow: var(--shadow-sm);
 }
 
-.festivos-lista {
+.agenda-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.barbero-avatar-header {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--blue-soft);
+  color: var(--blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.1rem;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.barbero-avatar-header img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.header-info {
   display: flex;
   flex-direction: column;
+  gap: 2px;
+}
+
+.header-info .brand {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--navy);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  line-height: 1;
+}
+
+.header-info .brand-tag {
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--gray-500);
+}
+
+.agenda-header-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.agenda-user {
+  font-size: 0.85rem;
+  color: var(--gray-500);
+}
+
+/* ===== TABS ===== */
+.agenda-tabs {
+  background: var(--white);
+  border-bottom: 1px solid var(--line);
+  padding: 0 24px;
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.agenda-tabs::-webkit-scrollbar { display: none; }
+
+.agenda-tabs .tab-btn {
+  background: none;
+  border: none;
+  padding: 14px 18px;
+  cursor: pointer;
+  color: var(--gray-500);
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  font-weight: 500;
+  border-bottom: 3px solid transparent;
+  white-space: nowrap;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
   gap: 8px;
+}
+
+.agenda-tabs .tab-btn:hover { color: var(--navy); }
+.agenda-tabs .tab-btn.active {
+  color: var(--red);
+  border-bottom-color: var(--red);
+}
+
+.tab-count {
+  background: var(--red);
+  color: var(--white);
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 700;
+  min-width: 20px;
+  text-align: center;
+}
+
+/* ===== MAIN ===== */
+.agenda-main {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.agenda-section-header {
   margin-bottom: 20px;
 }
 
-.festivo-row {
+.agenda-section-header h1 {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  color: var(--navy);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin: 0 0 12px;
+}
+
+/* ===== FILTER BAR ===== */
+.filter-bar {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 4px;
+}
+.filter-bar::-webkit-scrollbar { display: none; }
+
+.filter-chip {
+  background: var(--white);
+  border: 1px solid var(--line);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  color: var(--gray-500);
+  font-family: var(--font-body);
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.filter-chip:hover { border-color: var(--navy); }
+.filter-chip.active {
+  background: var(--navy);
+  color: var(--white);
+  border-color: var(--navy);
+}
+
+.filter-chip .count {
+  background: rgba(255,255,255,0.2);
+  padding: 1px 8px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.filter-chip:not(.active) .count {
+  background: var(--off-white);
+  color: var(--navy);
+}
+
+/* ===== CITAS ===== */
+.citas-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cita-card {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transition: box-shadow 0.15s;
+}
+
+.cita-card:hover { box-shadow: var(--shadow-sm); }
+.cita-card.completada { opacity: 0.7; border-left: 3px solid var(--success); }
+.cita-card.cancelada { opacity: 0.6; border-left: 3px solid var(--red); }
+.cita-card.confirmada { border-left: 3px solid var(--blue); }
+
+.cita-card.siguiente {
+  border: 2px solid var(--red);
+  box-shadow: 0 0 0 4px var(--red-soft);
+}
+
+.cita-hora-badge {
+  background: var(--navy);
+  color: var(--white);
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.cita-card.siguiente .cita-hora-badge {
+  background: var(--red);
+}
+
+.cita-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.cita-info-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+}
+
+.cita-info-top strong {
+  color: var(--navy);
+  font-size: 1rem;
+}
+
+.cita-info span {
+  font-size: 0.85rem;
+  color: var(--gray-500);
+}
+
+.cita-info a {
+  color: var(--blue);
+  font-weight: 500;
+}
+.cita-info a:hover { text-decoration: underline; }
+
+.cita-badge {
+  padding: 2px 10px;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.cita-badge.confirmada { background: var(--blue-soft); color: var(--blue); }
+.cita-badge.completada { background: var(--success-soft); color: var(--success); }
+.cita-badge.cancelada { background: var(--red-soft); color: var(--red); }
+
+.cita-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.complete-btn,
+.cancel-btn {
+  padding: 6px 12px;
+  border-radius: var(--radius);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--line);
+  background: var(--white);
+  font-family: var(--font-body);
+  transition: all 0.15s;
+}
+
+.complete-btn { color: var(--success); border-color: var(--success); }
+.complete-btn:hover { background: var(--success); color: var(--white); }
+
+.cancel-btn { color: var(--red); border-color: var(--red); }
+.cancel-btn:hover { background: var(--red); color: var(--white); }
+
+/* ===== EMPTY STATE ===== */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--gray-500);
+}
+
+.empty-state svg {
+  width: 60px;
+  height: 60px;
+  color: var(--gray-400);
+  margin-bottom: 16px;
+}
+
+.empty-state h3 {
+  color: var(--navy);
+  margin-bottom: 8px;
+  font-size: 1.2rem;
+}
+
+.empty-state p { font-size: 0.9rem; }
+
+/* ===== PERFIL FORM ===== */
+.perfil-form {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.foto-upload-field { margin-bottom: 8px; }
+
+.foto-upload {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.foto-preview {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: var(--blue-soft);
+  border: 2px dashed var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.foto-initials {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  color: var(--blue);
+  font-weight: 700;
+}
+
+#fotoImg { width: 100%; height: 100%; object-fit: cover; }
+
+.foto-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* ===== PASSWORD SECTION ===== */
+.password-section {
+  max-width: 600px;
+}
+
+.password-section h2 {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  color: var(--navy);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 12px;
+}
+
+/* ===== TOAST ===== */
+#toastContainer {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 1000;
+}
+
+.toast {
+  background: var(--navy);
+  color: var(--white);
+  padding: 12px 20px;
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  box-shadow: var(--shadow-lg);
+  animation: toastIn 0.3s ease;
+}
+
+.toast.error { background: var(--red); }
+.toast.success { background: var(--success); }
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================
+   FESTIVOS - AGENDA BARBERO
+   ============================================ */
+.festivos-agenda-seccion {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  max-width: 600px;
+}
+
+.festivos-agenda-seccion h2 {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--navy);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 6px;
+}
+
+.festivos-hint {
+  margin-bottom: 16px;
+  display: block;
+  color: var(--gray-500);
+  font-size: 0.85rem;
+}
+
+.festivos-lista-agenda {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.festivo-agenda-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
-  border-radius: 10px;
-  border: 1px solid var(--border);
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--white);
   transition: all 0.2s;
 }
 
-.festivo-row.cerrado {
+.festivo-agenda-row.cerrado {
   background: #fafafa;
   border-color: #e5e7eb;
 }
 
-.festivo-row.abierto {
+.festivo-agenda-row.abierto {
   background: #f0fdf4;
   border-color: #86efac;
 }
 
-.festivo-info strong {
+.festivo-agenda-info strong {
   display: block;
   font-size: 0.9rem;
   margin-bottom: 2px;
+  color: var(--navy);
 }
 
-.festivo-info span {
-  font-size: 0.8rem;
+.festivo-agenda-info span {
+  font-size: 0.78rem;
   color: var(--gray-500);
   text-transform: capitalize;
 }
 
-.festivo-toggle {
+.festivo-agenda-toggle {
   display: flex;
   align-items: center;
   gap: 10px;
   flex-shrink: 0;
 }
 
-.festivo-estado {
-  font-size: 0.8rem;
+.festivo-estado-label {
+  font-size: 0.78rem;
   font-weight: 600;
-  min-width: 55px;
+  min-width: 80px;
   text-align: right;
-  color: var(--gray-500);
 }
 
-.festivos-guardar-btn {
-  margin-top: 4px;
-}
+.label-cerrado { color: #9ca3af; }
+.label-abierto { color: #16a34a; }
 
+.festivos-guardar-btn { margin-top: 16px; }
+
+/* ===== TOGGLE SWITCH ===== */
 .toggle-switch {
   position: relative;
   display: inline-block;
@@ -118,104 +566,13 @@
   transform: translateX(20px);
 }
 
-.festivos-agenda-seccion {
-  margin-top: 32px;
-  padding-top: 24px;
-  border-top: 1px solid var(--border);
-}
-
-.festivos-agenda-seccion h2 {
-  font-size: 1.1rem;
-  font-weight: 700;
-  margin-bottom: 6px;
-}
-
-.festivos-hint {
-  margin-bottom: 16px;
-  display: block;
-}
-
-.festivos-lista-agenda {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 4px;
-}
-
-.festivo-agenda-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px 16px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  transition: all 0.2s;
-}
-
-.festivo-agenda-row.cerrado {
-  background: #fafafa;
-  border-color: #e5e7eb;
-}
-
-.festivo-agenda-row.abierto {
-  background: #f0fdf4;
-  border-color: #86efac;
-}
-
-.festivo-agenda-info strong {
-  display: block;
-  font-size: 0.9rem;
-  margin-bottom: 2px;
-}
-
-.festivo-agenda-info span {
-  font-size: 0.78rem;
-  color: var(--gray-500);
-  text-transform: capitalize;
-}
-
-.festivo-agenda-toggle {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-shrink: 0;
-}
-
-.festivo-estado-label {
-  font-size: 0.78rem;
-  font-weight: 600;
-  min-width: 80px;
-  text-align: right;
-}
-
-.label-cerrado {
-  color: #9ca3af;
-}
-
-.label-abierto {
-  color: #16a34a;
-}
-
-.fecha-option.festivo-cerrado {
-  opacity: 0.4;
-  cursor: not-allowed;
-  background: #f9fafb;
-}
-
-.fecha-option.es-festivo {
-  border-color: #f59e0b;
-}
-
-.festivo-tag {
-  font-size: 9px;
-  display: block;
-  margin-top: 2px;
-  color: #92400e;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-}
-
-.fecha-option.festivo-cerrado .festivo-tag {
-  color: #9ca3af;
+/* ===== RESPONSIVE ===== */
+@media (max-width: 640px) {
+  .agenda-header { padding: 12px 16px; }
+  .header-info .brand { font-size: 1rem; }
+  .agenda-main { padding: 16px; }
+  .agenda-section-header h1 { font-size: 1.4rem; }
+  .cita-card { flex-direction: column; align-items: flex-start; }
+  .cita-actions { width: 100%; justify-content: flex-end; }
+  .cita-hora-badge { align-self: flex-start; }
 }
