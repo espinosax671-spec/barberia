@@ -150,7 +150,7 @@ async function init() {
 
   const { data: barberoData, error } = await supabaseClient
     .from('barberos')
-    .select('*, negocios(nombre, subdominio)')
+    .select('*, negocios(nombre, subdominio, logo_url, telefono_whatsapp, direccion, ciudad)')
     .eq('auth_user_id', userId)
     .maybeSingle();
 
@@ -180,10 +180,89 @@ async function init() {
   loadPerfilForm();
 
   document.getElementById('loadingView').style.display = 'none';
-  document.getElementById('agendaView').style.display = 'block';
+  document.getElementById('agendaView').style.display = 'flex';
 
   await loadCitas();
   initRealtime();
+
+  // Sidebar
+  renderSidebar();
+  initSidebarNav();
+}
+
+// ============================================
+// SIDEBAR
+// ============================================
+function renderSidebar() {
+  const sidebarNombre = document.getElementById('sidebarNegocioNombre');
+  if (sidebarNombre) sidebarNombre.textContent = negocio.nombre;
+
+  const logoImg = document.getElementById('sidebarLogoImg');
+  const logoInitial = document.getElementById('sidebarLogoInitial');
+
+  if (negocio.logo_url) {
+    logoImg.src = negocio.logo_url;
+    logoImg.style.display = 'block';
+    logoInitial.style.display = 'none';
+  } else {
+    logoInitial.textContent = negocio.nombre.charAt(0).toUpperCase();
+  }
+
+  if (negocio.telefono_whatsapp) {
+    document.getElementById('sidebarTelefono').style.display = 'flex';
+    document.getElementById('sidebarTelefonoText').textContent = negocio.telefono_whatsapp;
+  }
+
+  if (negocio.direccion || negocio.ciudad) {
+    document.getElementById('sidebarDireccion').style.display = 'flex';
+    document.getElementById('sidebarDireccionText').textContent =
+      [negocio.direccion, negocio.ciudad].filter(Boolean).join(', ');
+  }
+}
+
+function initSidebarNav() {
+  const sidebarItems = document.querySelectorAll('.sidebar-nav-item');
+  const mainTabs = document.querySelectorAll('.main-tab');
+
+  function switchTab(tab) {
+    sidebarItems.forEach(i => i.classList.remove('active'));
+    const sidebarTarget = document.querySelector(`.sidebar-nav-item[data-tab="${tab}"]`);
+    if (sidebarTarget) sidebarTarget.classList.add('active');
+
+    mainTabs.forEach(t => t.classList.remove('active'));
+    const mainTarget = document.querySelector(`.main-tab[data-tab="${tab}"]`);
+    if (mainTarget) mainTarget.classList.add('active');
+
+    document.querySelectorAll('.tab-panel').forEach(p => p.style.display = 'none');
+    document.getElementById('tab-' + tab).style.display = 'block';
+
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebarOverlay').classList.remove('show');
+  }
+
+  sidebarItems.forEach(item => {
+    item.addEventListener('click', () => switchTab(item.dataset.tab));
+  });
+
+  mainTabs.forEach(tab => {
+    tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+  });
+
+  const mobileBtn = document.getElementById('mobileMenuBtn');
+  if (mobileBtn) {
+    mobileBtn.addEventListener('click', () => {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebarOverlay').classList.toggle('show');
+    });
+  }
+
+  const overlay = document.getElementById('sidebarOverlay');
+  if (overlay) {
+    overlay.addEventListener('click', () => {
+      document.getElementById('sidebar').classList.remove('open');
+      overlay.classList.remove('show');
+    });
+  }
 }
 
 // ============================================
@@ -227,15 +306,6 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
   window.location.href = 'login.html';
 });
 
-document.querySelectorAll('.tab-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.tab-panel').forEach(p => p.style.display = 'none');
-    btn.classList.add('active');
-    document.getElementById('tab-' + btn.dataset.tab).style.display = 'block';
-  });
-});
-
 // ============================================
 // CITAS
 // ============================================
@@ -270,7 +340,12 @@ function renderCitas() {
     const el = document.getElementById('c-' + k);
     if (el) el.textContent = counts[k];
   });
+
   document.getElementById('citasCount').textContent = counts.hoy;
+
+  // Actualizar badge del sidebar
+  const sidebarCount = document.getElementById('sidebarCitasCount');
+  if (sidebarCount) sidebarCount.textContent = counts.hoy;
 
   let filtradas = citas;
   if (currentFilter === 'hoy') {
@@ -284,12 +359,22 @@ function renderCitas() {
   if (!filtradas.length) {
     list.innerHTML = `
       <div class="empty-state">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <rect x="3" y="4" width="18" height="18" rx="2"/>
-          <path d="M16 2v4M8 2v4M3 10h18"/>
+        <svg class="empty-state-icon" viewBox="0 0 200 200" fill="none" stroke="currentColor" stroke-width="3">
+          <!-- Silla de barberia -->
+          <rect x="60" y="80" width="80" height="70" rx="8" fill="none"/>
+          <rect x="50" y="150" width="100" height="15" rx="4" fill="none"/>
+          <line x1="70" y1="165" x2="70" y2="185"/>
+          <line x1="130" y1="165" x2="130" y2="185"/>
+          <line x1="60" y1="185" x2="140" y2="185"/>
+          <path d="M55 80 Q55 60 75 60 L125 60 Q145 60 145 80" fill="none"/>
+          <!-- Estrellas decorativas -->
+          <circle cx="30" cy="50" r="3" fill="currentColor" opacity="0.4"/>
+          <circle cx="170" cy="45" r="3" fill="currentColor" opacity="0.4"/>
+          <circle cx="180" cy="120" r="3" fill="currentColor" opacity="0.4"/>
+          <circle cx="20" cy="130" r="3" fill="currentColor" opacity="0.4"/>
         </svg>
-        <h3>No hay citas en esta vista</h3>
-        <p>Cuando tengas citas confirmadas apareceran aqui.</p>
+        <h3>Tu agenda esta al dia</h3>
+        <p>No tienes mas citas programadas para hoy.</p>
       </div>`;
     return;
   }
@@ -324,9 +409,28 @@ function renderCitas() {
           <strong>${cita.nombre_cliente}</strong>
           <span class="cita-badge ${cita.estado}">${cita.estado}</span>
         </div>
-        <span>${cita.servicio_nombre} · ${formatCOP(cita.precio)} · ${cita.duracion} min</span>
-        <span>${fechaLabel}</span>
-        <span>Tel: <a href="${waLink}" target="_blank">${cita.telefono}</a></span>
+        <span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/>
+            <line x1="20" y1="4" x2="8.12" y2="15.88"/>
+            <line x1="14.47" y1="14.48" x2="20" y2="20"/>
+            <line x1="8.12" y1="8.12" x2="12" y2="12"/>
+          </svg>
+          ${cita.servicio_nombre} · ${formatCOP(cita.precio)} · ${cita.duracion} min
+        </span>
+        <span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2"/>
+            <path d="M16 2v4M8 2v4M3 10h18"/>
+          </svg>
+          ${fechaLabel}
+        </span>
+        <span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/>
+          </svg>
+          Tel: <a href="${waLink}" target="_blank">${cita.telefono}</a>
+        </span>
       </div>
       <div class="cita-actions">
         ${cita.estado === 'confirmada' ? `
