@@ -109,4 +109,4 @@ CREATE POLICY "admins_select" ON public.admins
 -- 9) REGISTRO DE TU CUENTA COMO SUPER ADMIN
 -- ============================================================
 INSERT INTO public.admins (auth_user_id)
-VALUES ('430e788f-3cc0-4260-b7b0-ba836399ebdc');
+VALUES ('6dc1b900-f239-403a-bf19-76a41985e440');
