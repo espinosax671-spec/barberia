@@ -9,18 +9,17 @@ function showToast(msg, type = 'success') {
 }
 
 async function loadData() {
-  const { data, error } = await supabaseClient
-    .from('negocios')
-    .select('id, nombre, subdominio, email_contacto, telefono_whatsapp, aprobado, estado_suscripcion, trial_termina_en')
-    .order('aprobado', { ascending: true })
-    .order('nombre', { ascending: true });
+  const { data, error } = await supabaseClient.rpc('obtener_negocios');
 
   if (error) {
     showToast('Error al cargar: ' + error.message, 'error');
     return;
   }
 
-  negocios = data || [];
+  negocios = (data || []).sort((a, b) => {
+    if (a.aprobado !== b.aprobado) return a.aprobado ? 1 : -1;
+    return (a.nombre || '').localeCompare(b.nombre || '');
+  });
   renderStats();
   renderTable();
 }
