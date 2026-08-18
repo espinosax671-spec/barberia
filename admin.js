@@ -51,13 +51,17 @@ function renderTable() {
     const tr = document.createElement('tr');
 
     const estadoChip = n.aprobado
-      ? '<span class="chip chip-ok">Aprobada</span>'
-      : '<span class="chip chip-warn">Pendiente</span>';
+      ? '<span class="badge aprobada">Aprobada</span>'
+      : '<span class="badge pendiente">Pendiente</span>';
 
     const contacto = [
       n.email_contacto || '',
       n.telefono_whatsapp ? 'WhatsApp: ' + n.telefono_whatsapp : '',
     ].filter(Boolean).join('<br>');
+
+    const acciones = n.aprobado
+      ? `<button class="btn-action" data-action="bloquear" data-id="${n.id}">Bloquear</button>`
+      : `<button class="btn-action primary" data-action="aprobar" data-id="${n.id}">Aprobar</button>`;
 
     tr.innerHTML = `
       <td><strong>${escapeHtml(n.nombre)}</strong></td>
@@ -65,12 +69,7 @@ function renderTable() {
       <td>${contacto}</td>
       <td>${formatTrial(n.trial_termina_en)}</td>
       <td>${estadoChip}</td>
-      <td class="actions-cell">
-        ${n.aprobado
-          ? `<button class="btn btn-ghost btn-sm" data-action="bloquear" data-id="${n.id}">Bloquear</button>`
-          : `<button class="btn btn-primary btn-sm" data-action="aprobar" data-id="${n.id}">Aprobar</button>`}
-        <a class="btn btn-ghost btn-sm" href="${APP_BASE_URL}/reservar.html?b=${n.subdominio}" target="_blank">Ver</a>
-      </td>
+      <td>${acciones}</td>
     `;
 
     const approveBtn = tr.querySelector('[data-action="aprobar"]');
