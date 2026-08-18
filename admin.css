@@ -150,6 +150,12 @@ body {
   padding: 28px 32px 64px;
 }
 
+.admin-container {
+  max-width: 1160px;
+  margin: 0 auto;
+  width: 100%;
+}
+
 /* Cards de resumen (stats) */
 .stats-grid {
   display: grid;
