@@ -24,8 +24,9 @@ body {
   color: var(--text-dark);
 }
 
-.admin-layout {
+.dashboard-wrapper {
   display: flex;
+  flex-direction: row;
   min-height: 100vh;
 }
 
@@ -107,9 +108,10 @@ body {
 }
 
 /* Content */
-.admin-content {
+.main-content {
   flex: 1;
   min-width: 0;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
 }
@@ -339,7 +341,7 @@ table.data-table tbody tr:hover { background: #fafbfd; }
 }
 
 @media (max-width: 768px) {
-  .admin-layout { flex-direction: column; }
+  .dashboard-wrapper { flex-direction: column; }
   .sidebar { width: 100%; min-height: auto; }
   .sidebar .footer-box { margin-top: 8px; }
   .admin-main { padding: 20px 16px 48px; }
