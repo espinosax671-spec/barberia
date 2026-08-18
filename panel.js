@@ -177,6 +177,11 @@ async function init() {
 
   negocio = negocioData;
 
+  if (!negocio.aprobado) {
+    window.location.href = 'pendiente.html';
+    return;
+  }
+
   document.getElementById('negocioNombre').textContent = negocio.nombre;
   document.getElementById('userEmail').textContent = userEmail;
 

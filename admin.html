@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — CitaBarber</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="admin.css">
+
+<!-- PWA -->
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#16294f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="CitaBarber">
+<link rel="apple-touch-icon" href="/iconos/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/iconos/icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="/iconos/icon-512.png">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="admin-body">
+
+<div id="loadingView" class="admin-loading">
+  <div class="spinner"></div>
+  <p class="hint">Cargando panel de administracion...</p>
+</div>
+
+<div id="adminView" class="admin-layout" style="display:none;">
+
+  <header class="admin-header">
+    <div class="admin-header-inner">
+      <div class="admin-brand">
+        <img src="citabarber.png" alt="CitaBarber" class="admin-logo">
+        <div class="admin-brand-text">
+          <strong>Panel de administracion</strong>
+          <span>CitaBarber</span>
+        </div>
+      </div>
+      <div class="admin-header-right">
+        <span id="userEmail" class="admin-email"></span>
+        <button class="logout-btn" id="adminLogoutBtn">Cerrar sesion</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="admin-main">
+
+    <div class="admin-stats" id="adminStats">
+      <div class="stat-card">
+        <span class="stat-value" id="statTotal">0</span>
+        <span class="stat-label">Barberias registradas</span>
+      </div>
+      <div class="stat-card stat-warn">
+        <span class="stat-value" id="statPendientes">0</span>
+        <span class="stat-label">Pendientes de aprobar</span>
+      </div>
+      <div class="stat-card stat-ok">
+        <span class="stat-value" id="statAprobadas">0</span>
+        <span class="stat-label">Aprobadas</span>
+      </div>
+    </div>
+
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <h2>Barberias</h2>
+        <button class="btn btn-ghost btn-sm" id="refreshBtn">Actualizar</button>
+      </div>
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>URL</th>
+              <th>Contacto</th>
+              <th>Trial termina</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="negociosTable"></tbody>
+        </table>
+        <p class="hint" id="emptyMsg" style="display:none;">Aún no hay barberías registradas.</p>
+      </div>
+    </div>
+
+  </main>
+
+</div>
+
+<div id="toastContainer"></div>
+
+<script src="config.js"></script>
+<script src="admin.js"></script>
+
+<!-- Service Worker -->
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(reg => console.log('SW registrado:', reg.scope))
+      .catch(err => console.error('SW error:', err));
+  });
+}
+</script>
+
+</body>
+</html>

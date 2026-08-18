@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aprobación pendiente — CitaBarber</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="login.css">
+
+<!-- PWA -->
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#16294f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="CitaBarber">
+<link rel="apple-touch-icon" href="/iconos/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/iconos/icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="/iconos/icon-512.png">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="auth-body">
+
+<div class="bg-decoration bg-decoration-tl"></div>
+<div class="bg-decoration bg-decoration-tr"></div>
+<div class="bg-decoration bg-decoration-bl"></div>
+<div class="bg-decoration bg-decoration-br"></div>
+
+<div class="auth-container">
+
+  <div class="auth-brand">
+    <a href="index.html">
+      <img src="citabarber.png" alt="CitaBarber" class="brand-logo-img">
+    </a>
+  </div>
+
+  <div class="auth-card">
+
+    <div class="check-email">
+      <div class="check-email-icon" style="background: var(--warning, #fff3e0); color: var(--warning, #d97706);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+      </div>
+      <h2>Aprobacion pendiente</h2>
+      <p>Tu barbería aún no ha sido aprobada por el administrador de la plataforma.</p>
+      <p>En cuanto sea aprobada, podrás gestionar tus citas y compartir tu página de reservas.</p>
+      <p class="mt-4">
+        <button type="button" class="btn btn-dark" id="logoutBtn">Cerrar sesion</button>
+      </p>
+    </div>
+
+  </div>
+
+</div>
+
+<script src="config.js"></script>
+<script>
+document.getElementById('logoutBtn').addEventListener('click', async () => {
+  await supabaseClient.auth.signOut();
+  window.location.href = 'index.html';
+});
+</script>
+
+<!-- Service Worker -->
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(reg => console.log('SW registrado:', reg.scope))
+      .catch(err => console.error('SW error:', err));
+  });
+}
+</script>
+
+</body>
+</html>

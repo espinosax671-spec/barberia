@@ -117,6 +117,13 @@ async function redirectByUserType(userId, showError = null) {
     return;
   }
 
+  // Verificar si es super admin
+  const { data: esAdmin } = await supabaseClient.rpc('es_admin');
+  if (esAdmin === true) {
+    window.location.href = 'admin.html';
+    return;
+  }
+
   // Verificar si es un usuario reciente con metadata (dueño registrándose)
   const { data: userData } = await supabaseClient.auth.getUser();
   const meta = userData?.user?.user_metadata || {};

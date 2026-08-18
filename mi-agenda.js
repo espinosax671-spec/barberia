@@ -150,7 +150,7 @@ async function init() {
 
   const { data: barberoData, error } = await supabaseClient
     .from('barberos')
-    .select('*, negocios(nombre, subdominio, logo_url, telefono_whatsapp, direccion, ciudad)')
+    .select('*, negocios(nombre, subdominio, logo_url, telefono_whatsapp, direccion, ciudad, aprobado)')
     .eq('auth_user_id', userId)
     .maybeSingle();
 
@@ -163,6 +163,11 @@ async function init() {
 
   barbero = barberoData;
   negocio = barberoData.negocios;
+
+  if (!negocio.aprobado) {
+    window.location.href = 'pendiente.html';
+    return;
+  }
 
   document.getElementById('barberoNombre').textContent = barbero.nombre;
   document.getElementById('negocioNombreLabel').textContent = negocio.nombre;

@@ -136,7 +136,7 @@ async function init() {
   if (!subdominio) { showNotFound(); return; }
 
   const { data: negocioData, error } = await supabaseClient
-    .from('negocios').select('*').eq('subdominio', subdominio).maybeSingle();
+    .from('negocios').select('*').eq('subdominio', subdominio).eq('aprobado', true).maybeSingle();
 
   if (error || !negocioData) { showNotFound(); return; }
 
