@@ -2,12 +2,7 @@
 -- SUPER ADMIN — CitaBarber
 -- Control de acceso: aprobación de barberías por el administrador.
 -- Ejecutar en Supabase → SQL Editor (rol postgres). Es idempotente.
---
--- CUENTA ADMIN REGISTRADA (auth uid de tu usuario):
 -- ============================================================
-
-INSERT INTO public.admins (auth_user_id)
-VALUES ('430e788f-3cc0-4260-b7b0-ba836399ebdc');
 
 -- 1) Tabla de super admins ------------------------------------
 CREATE TABLE IF NOT EXISTS public.admins (
@@ -109,3 +104,9 @@ DROP POLICY IF EXISTS "admins_select" ON public.admins;
 CREATE POLICY "admins_select" ON public.admins
   FOR SELECT TO authenticated
   USING (public.es_admin());
+
+-- ============================================================
+-- 9) REGISTRO DE TU CUENTA COMO SUPER ADMIN
+-- ============================================================
+INSERT INTO public.admins (auth_user_id)
+VALUES ('430e788f-3cc0-4260-b7b0-ba836399ebdc');
