@@ -3,14 +3,11 @@
 -- Control de acceso: aprobación de barberías por el administrador.
 -- Ejecutar en Supabase → SQL Editor (rol postgres). Es idempotente.
 --
--- PASO FINAL (importante): agregar TU cuenta como super admin:
---   INSERT INTO public.admins (auth_user_id)
---   VALUES ('TU_AUTH_UID');
---
--- Para encontrar TU auth uid: Authentication → Users → tu email.
--- (Cada barbería existente queda 'pendiente' hasta que la apruebes
---  desde /admin.html o con: UPDATE negocios SET aprobado = true;)
+-- CUENTA ADMIN REGISTRADA (auth uid de tu usuario):
 -- ============================================================
+
+INSERT INTO public.admins (auth_user_id)
+VALUES ('430e788f-3cc0-4260-b7b0-ba836399ebdc');
 
 -- 1) Tabla de super admins ------------------------------------
 CREATE TABLE IF NOT EXISTS public.admins (
