@@ -11,7 +11,7 @@
 
 <!-- PWA -->
 <link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#0a1f44">
+<meta name="theme-color" content="#16294f">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="CitaBarber">
@@ -28,131 +28,65 @@
   <p class="hint">Cargando panel de administracion...</p>
 </div>
 
-<div id="adminView" class="dashboard-wrapper" style="display:none;">
+<div id="adminView" class="admin-layout" style="display:none;">
 
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
-    <div class="logo-box">
-      <img src="citabarber.png" alt="CitaBarber" class="logo-img">
-      <strong>Admin</strong>
+  <header class="admin-header">
+    <div class="admin-header-inner">
+      <div class="admin-brand">
+        <img src="citabarber.png" alt="CitaBarber" class="admin-logo">
+        <div class="admin-brand-text">
+          <strong>Panel de administracion</strong>
+          <span>CitaBarber</span>
+        </div>
+      </div>
+      <div class="admin-header-right">
+        <span id="userEmail" class="admin-email"></span>
+        <button class="logout-btn" id="adminLogoutBtn">Cerrar sesion</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="admin-main">
+
+    <div class="admin-stats" id="adminStats">
+      <div class="stat-card">
+        <span class="stat-value" id="statTotal">0</span>
+        <span class="stat-label">Barberias registradas</span>
+      </div>
+      <div class="stat-card stat-warn">
+        <span class="stat-value" id="statPendientes">0</span>
+        <span class="stat-label">Pendientes de aprobar</span>
+      </div>
+      <div class="stat-card stat-ok">
+        <span class="stat-value" id="statAprobadas">0</span>
+        <span class="stat-label">Aprobadas</span>
+      </div>
     </div>
 
-    <nav>
-      <div class="nav-item active">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="3" y="4" width="18" height="18" rx="2"/>
-          <path d="M16 2v4M8 2v4M3 10h18"/>
-        </svg>
-        Barberias
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <h2>Barberias</h2>
+        <button class="btn btn-ghost btn-sm" id="refreshBtn">Actualizar</button>
       </div>
-    </nav>
-
-    <div class="footer-box">
-      <span class="status-dot"></span>
-      Super admin
-      <br>
-      <span class="footer-sub">CitaBarber</span>
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>URL</th>
+              <th>Contacto</th>
+              <th>Trial termina</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="negociosTable"></tbody>
+        </table>
+        <p class="hint" id="emptyMsg" style="display:none;">Aún no hay barberías registradas.</p>
+      </div>
     </div>
-  </aside>
 
-  <!-- CONTENIDO -->
-  <div class="main-content">
-
-    <!-- HEADER -->
-    <header class="topbar">
-      <div>
-        <h1>Panel de administracion</h1>
-        <p id="userEmail"></p>
-      </div>
-      <button class="btn-logout" id="adminLogoutBtn">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>
-        </svg>
-        Cerrar sesion
-      </button>
-    </header>
-
-    <main class="admin-main">
-
-      <div class="admin-container">
-
-        <!-- STATS -->
-        <div class="stats-grid">
-        <div class="stat-card">
-          <div class="icon-box blue">
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
-              <circle cx="9" cy="7" r="4"/>
-              <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
-            </svg>
-          </div>
-          <div>
-            <div class="number" id="statTotal">0</div>
-            <div class="label">Barberias registradas</div>
-          </div>
-        </div>
-
-        <div class="stat-card">
-          <div class="icon-box orange">
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"/>
-              <line x1="12" y1="8" x2="12" y2="12"/>
-              <line x1="12" y1="16" x2="12.01" y2="16"/>
-            </svg>
-          </div>
-          <div>
-            <div class="number" id="statPendientes">0</div>
-            <div class="label">Pendientes de aprobar</div>
-          </div>
-        </div>
-
-        <div class="stat-card">
-          <div class="icon-box green">
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="20 6 9 17 4 12"/>
-            </svg>
-          </div>
-          <div>
-            <div class="number" id="statAprobadas">0</div>
-            <div class="label">Aprobadas</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- TABLA -->
-      <div class="panel">
-        <div class="panel-header">
-          <span>Barberias</span>
-          <button class="btn-refresh" id="refreshBtn">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="23 4 23 10 17 10"/>
-              <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/>
-            </svg>
-            Actualizar
-          </button>
-        </div>
-
-        <div class="table-wrap">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Nombre</th>
-                <th>URL</th>
-                <th>Contacto</th>
-                <th>Trial termina</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody id="negociosTable"></tbody>
-          </table>
-          <div class="empty-hint" id="emptyMsg" style="display:none;">Aun no hay barberias registradas.</div>
-        </div>
-      </div>
-
-      </div>
-    </main>
-  </div>
+  </main>
 
 </div>
 
