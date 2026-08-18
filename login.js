@@ -93,6 +93,13 @@ document.getElementById('recoverForm').addEventListener('submit', async (e) => {
 
 // Función para redirigir según tipo de usuario
 async function redirectByUserType(userId, showError = null) {
+  // Verificar si es super admin (prioridad máxima)
+  const { data: esAdmin } = await supabaseClient.rpc('es_admin');
+  if (esAdmin === true) {
+    window.location.href = 'admin.html';
+    return;
+  }
+
   // Verificar si es dueño
   const { data: negocio } = await supabaseClient
     .from('negocios')
@@ -114,13 +121,6 @@ async function redirectByUserType(userId, showError = null) {
 
   if (barbero) {
     window.location.href = 'mi-agenda.html';
-    return;
-  }
-
-  // Verificar si es super admin
-  const { data: esAdmin } = await supabaseClient.rpc('es_admin');
-  if (esAdmin === true) {
-    window.location.href = 'admin.html';
     return;
   }
 

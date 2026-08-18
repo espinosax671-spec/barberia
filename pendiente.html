@@ -52,6 +52,9 @@
       <p class="mt-4">
         <button type="button" class="btn btn-dark" id="logoutBtn">Cerrar sesion</button>
       </p>
+      <p class="mt-2" id="adminLinkWrap" style="display:none;">
+        <a href="admin.html" class="btn btn-primary">Ir al panel de administracion</a>
+      </p>
     </div>
 
   </div>
@@ -60,6 +63,13 @@
 
 <script src="config.js"></script>
 <script>
+(async () => {
+  const { data: esAdmin } = await supabaseClient.rpc('es_admin');
+  if (esAdmin === true) {
+    document.getElementById('adminLinkWrap').style.display = 'block';
+  }
+})();
+
 document.getElementById('logoutBtn').addEventListener('click', async () => {
   await supabaseClient.auth.signOut();
   window.location.href = 'index.html';
