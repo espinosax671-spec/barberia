@@ -35,6 +35,62 @@ subdomInput.addEventListener('input', () => {
   urlPreview.textContent = val ? `/reservar?b=${val}` : '/reservar';
 });
 
+// Recuperación de contraseña
+function showAuthPanel(name) {
+  document.querySelectorAll('.auth-panel').forEach(p => p.style.display = 'none');
+  document.getElementById('panel-' + name).style.display = 'block';
+}
+
+document.getElementById('forgotLink').addEventListener('click', (e) => {
+  e.preventDefault();
+  document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+  showAuthPanel('recuperar');
+});
+
+document.getElementById('backToLoginFromRecover').addEventListener('click', (e) => {
+  e.preventDefault();
+  document.querySelector('.auth-tab[data-tab="ingresar"]').classList.add('active');
+  showAuthPanel('ingresar');
+});
+
+document.getElementById('recoverForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const msg = document.getElementById('recoverMsg');
+  msg.textContent = '';
+  msg.className = 'form-msg';
+
+  const email = document.getElementById('recoverEmail').value.trim();
+  if (!email) {
+    msg.textContent = 'Ingresa tu correo electrónico.';
+    msg.className = 'form-msg error';
+    return;
+  }
+
+  const btn = e.target.querySelector('button[type="submit"]');
+  const originalHTML = btn.innerHTML;
+  btn.disabled = true;
+  btn.textContent = 'Enviando...';
+  msg.textContent = 'Enviando enlace de recuperación...';
+  msg.className = 'form-msg info';
+
+  const redirectTo = window.location.origin + '/confirmar.html';
+  const { error } = await supabaseClient.auth.resetPasswordForEmail(email, { redirectTo });
+
+  btn.disabled = false;
+  btn.innerHTML = originalHTML;
+
+  if (error) {
+    msg.textContent = 'No pudimos enviar el enlace: ' + error.message;
+    msg.className = 'form-msg error';
+    return;
+  }
+
+  msg.textContent = 'Te enviamos un enlace a ' + email + '. Revisa tu bandeja de entrada.';
+  msg.className = 'form-msg ok';
+  document.getElementById('recoverEmail').disabled = true;
+  btn.style.display = 'none';
+});
+
 // Función para redirigir según tipo de usuario
 async function redirectByUserType(userId, showError = null) {
   // Verificar si es dueño

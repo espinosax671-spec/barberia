@@ -70,6 +70,31 @@
       </p>
     </div>
 
+    <!-- Restablecer contraseña -->
+    <div id="recoveryView" class="check-email" style="display:none;">
+      <div class="check-email-icon" style="background: var(--blue-soft, #e2ecfb); color: var(--blue, #1d5ca8);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="11" width="18" height="11" rx="2"/>
+          <path d="M7 11V7a5 5 0 0110 0v4"/>
+        </svg>
+      </div>
+      <h2>Crea una nueva contraseña</h2>
+      <p>Ingresa tu nueva contraseña para continuar.</p>
+
+      <form id="recoveryForm" style="text-align: left; width: 100%;">
+        <div class="field">
+          <label for="newPass">Nueva contraseña</label>
+          <input type="password" id="newPass" minlength="6" required placeholder="Min. 6 caracteres">
+        </div>
+        <div class="field">
+          <label for="newPass2">Confirmar contraseña</label>
+          <input type="password" id="newPass2" minlength="6" required placeholder="Repite la contraseña">
+        </div>
+        <button type="submit" class="btn btn-primary btn-block btn-lg">Actualizar contraseña</button>
+        <p class="form-msg" id="recoveryMsg"></p>
+      </form>
+    </div>
+
   </div>
 
 </div>

@@ -155,7 +155,7 @@
                 <input type="checkbox" id="rememberMe" checked>
                 <span>Recordarme</span>
               </label>
-              <a href="#" class="forgot-link">Olvidaste tu contrasena?</a>
+              <a href="#" id="forgotLink" class="forgot-link">Olvidaste tu contrasena?</a>
             </div>
 
             <button type="submit" class="btn btn-dark btn-block btn-lg">
@@ -247,6 +247,38 @@
             </button>
             <p class="form-msg" id="registerMsg"></p>
           </form>
+        </div>
+
+        <!-- RECUPERAR CONTRASENA -->
+        <div class="auth-panel" id="panel-recuperar" style="display:none;">
+          <h1 class="auth-title">Recupera tu contrasena</h1>
+          <p class="auth-subtitle">Te enviaremos un enlace para reestablecer tu contrasena.</p>
+
+          <form id="recoverForm">
+            <div class="field">
+              <label for="recoverEmail">Correo electronico</label>
+              <div class="input-with-icon">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                  <polyline points="22,6 12,13 2,6"/>
+                </svg>
+                <input type="email" id="recoverEmail" required placeholder="tucorreo@ejemplo.com">
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-dark btn-block btn-lg">
+              Enviar enlace
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="5" y1="12" x2="19" y2="12"/>
+                <polyline points="12 5 19 12 12 19"/>
+              </svg>
+            </button>
+            <p class="form-msg" id="recoverMsg"></p>
+          </form>
+
+          <p class="mt-2">
+            <a href="#" id="backToLoginFromRecover" class="forgot-link">Volver a iniciar sesion</a>
+          </p>
         </div>
       </div>
 

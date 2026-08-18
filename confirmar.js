@@ -101,4 +101,67 @@ function mostrarError(msg) {
   document.getElementById('errorMsg').textContent = msg;
 }
 
-activarCuenta();
+// ——— Recuperación de contraseña ———
+const recoveryUrl = new URL(window.location.href);
+const recoveryCode = recoveryUrl.searchParams.get('code');
+const esRecuperacion = recoveryUrl.hash.includes('type=recovery') || recoveryCode !== null;
+
+async function manejarRecuperacion() {
+  if (recoveryCode) {
+    const { error } = await supabaseClient.auth.exchangeCodeForSession(recoveryCode);
+    if (error) {
+      mostrarError('El enlace expiró o no es válido. Solicita uno nuevo desde el login.');
+      return;
+    }
+  }
+
+  const { data: sessionData } = await supabaseClient.auth.getSession();
+  if (!sessionData.session) {
+    mostrarError('No pudimos verificar tu cuenta. Solicita un nuevo enlace.');
+    return;
+  }
+
+  document.getElementById('loadingView').style.display = 'none';
+  document.getElementById('recoveryView').style.display = 'block';
+
+  document.getElementById('recoveryForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = document.getElementById('recoveryMsg');
+    const pass1 = document.getElementById('newPass').value;
+    const pass2 = document.getElementById('newPass2').value;
+
+    if (pass1 !== pass2) {
+      msg.textContent = 'Las contraseñas no coinciden.';
+      msg.className = 'form-msg error';
+      return;
+    }
+
+    const btn = e.target.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    btn.textContent = 'Guardando...';
+
+    const { error } = await supabaseClient.auth.updateUser({ password: pass1 });
+
+    if (error) {
+      msg.textContent = 'Error: ' + error.message;
+      msg.className = 'form-msg error';
+      btn.disabled = false;
+      btn.textContent = 'Actualizar contraseña';
+      return;
+    }
+
+    document.getElementById('recoveryView').innerHTML =
+      '<div class="check-email-icon" style="background: var(--success-soft, #dcf5e3); color: var(--success, #177d3f);">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>' +
+      '</div>' +
+      '<h2>Contraseña actualizada</h2>' +
+      '<p>Ya puedes iniciar sesión con tu nueva contraseña.</p>' +
+      '<p class="mt-4"><a href="login.html" class="btn btn-primary btn-lg">Ir al login</a></p>';
+  });
+}
+
+if (esRecuperacion) {
+  manejarRecuperacion();
+} else {
+  activarCuenta();
+}
